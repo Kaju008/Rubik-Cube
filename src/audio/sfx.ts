@@ -4,6 +4,7 @@ let master: GainNode | null = null;
 let enabled = true;
 
 export function setSfxEnabled(v: boolean) { enabled = v; }
+export const audioCtx = () => ctx;
 export function sfxEnabled() { return enabled; }
 
 /** Must be called from a user gesture once (browsers block audio until then). */

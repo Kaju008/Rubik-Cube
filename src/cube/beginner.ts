@@ -6,7 +6,7 @@ import {
 } from './model';
 import { CORNERS, EDGES, PARTNERS } from './pieces';
 
-export interface Chunk { label: string; moves: string[]; kind?: 'rotate' | 'adjust' | 'alg' }
+export interface Chunk { label: string; moves: string[]; kind?: 'rotate' | 'adjust' | 'alg'; voice?: string }
 export interface Stage { id: string; title: string; goal: string; tip: string; chunks: Chunk[] }
 export interface Solution { method: 'beginner' | 'fast'; stages: Stage[]; moveCount: number }
 
@@ -27,7 +27,7 @@ const f2lOK = (s: State) => firstLayerOK(s) && MID_EDGES.every((e) => slotOK(s, 
 
 const yRot = (k: number): string[] => [[], ['y'], ['y2'], ["y'"]][((k % 4) + 4) % 4];
 
-interface Macro { label: string; moves: string[]; perm: Perm; slot: number; isU: boolean; family: string }
+interface Macro { label: string; moves: string[]; perm: Perm; slot: number; isU: boolean; family: string; voice?: string }
 
 function uMacros(): Macro[] {
   return ['U', 'U2', "U'"].map((m) => ({
@@ -35,9 +35,9 @@ function uMacros(): Macro[] {
   }));
 }
 
-function algMacro(alg: string, label: string, slot: number, family: string): Macro {
+function algMacro(alg: string, label: string, slot: number, family: string, voice?: string): Macro {
   const moves = parseAlg(alg);
-  return { label, moves, perm: algPerm([...yRot(slot), ...moves, ...yRot(-slot)]), slot, isU: false, family };
+  return { label, moves, perm: algPerm([...yRot(slot), ...moves, ...yRot(-slot)]), slot, isU: false, family, voice };
 }
 
 /** Turn a list of macros (found in a fixed frame) into chunks with explicit whole-cube rotations. */
@@ -49,7 +49,7 @@ function emit(macros: Macro[]): Chunk[] {
     const rel = yRot(m.slot - offset);
     if (rel.length) pushChunk(chunks, { label: 'Turn the whole cube', moves: rel, kind: 'rotate' });
     offset = m.slot;
-    pushChunk(chunks, { label: m.label, moves: [...m.moves], kind: 'alg' });
+    pushChunk(chunks, { label: m.label, moves: [...m.moves], kind: 'alg', voice: m.voice });
   }
   return chunks;
 }
@@ -185,7 +185,7 @@ export function solveBeginner(start: State): Solution {
 
   // 1. cross
   const cross = solveCross(s);
-  const crossChunks: Chunk[] = cross.length ? [{ label: 'Build the white cross on the bottom', moves: cross, kind: 'alg' }] : [];
+  const crossChunks: Chunk[] = cross.length ? [{ label: 'Build the white cross on the bottom', moves: cross, kind: 'alg', voice: 'alg_cross' }] : [];
   run(crossChunks);
   stages.push(stage('cross', crossChunks));
   if (!crossOK(s)) throw new Error('cross failed');
@@ -196,7 +196,7 @@ export function solveBeginner(start: State): Solution {
     const macros = [...uMacros()];
     for (let k = 0; k < 4; k++)
       for (let n = 1; n <= 5; n++)
-        macros.push(algMacro(Array(n).fill("R U R' U'").join(' '), n === 1 ? "R U R' U'" : `R U R' U' × ${n}`, k, 'sexy'));
+        macros.push(algMacro(Array(n).fill("R U R' U'").join(' '), n === 1 ? "R U R' U'" : `R U R' U' × ${n}`, k, 'sexy', `alg_sexy_${n}`));
     for (let guard = 0; guard < 4 && !firstLayerOK(s); guard++) {
       const done = D_CORNERS.filter((c) => slotOK(s, c.facelets));
       let best: Chunk[] | null = null;
@@ -217,8 +217,8 @@ export function solveBeginner(start: State): Solution {
     const chunks: Chunk[] = [];
     const macros = [...uMacros()];
     for (let k = 0; k < 4; k++) {
-      macros.push(algMacro("U R U' R' U' F' U F", 'Insert right: U R U\' R\' U\' F\' U F', k, 'right'));
-      macros.push(algMacro("U' L' U L U F U' F'", "Insert left: U' L' U L U F U' F'", k, 'left'));
+      macros.push(algMacro("U R U' R' U' F' U F", 'Insert right: U R U\' R\' U\' F\' U F', k, 'right', 'alg_right'));
+      macros.push(algMacro("U' L' U L U F U' F'", "Insert left: U' L' U L U F U' F'", k, 'left', 'alg_left'));
     }
     for (let guard = 0; guard < 4 && !f2lOK(s); guard++) {
       const done = MID_EDGES.filter((e) => slotOK(s, e.facelets));
@@ -253,9 +253,9 @@ export function solveBeginner(start: State): Solution {
       return have === want;
     });
 
-  llStage('ycross', [...uMacros(), algMacro("F R U R' U' F'", "F R U R' U' F'", 0, 'fru')], (st) => f2lOK(st) && yEdgesUp(st), 5);
-  llStage('yedges', [...uMacros(), algMacro("R U R' U R U2 R'", "R U R' U R U2 R'", 0, 'sune')], (st) => f2lOK(st) && uEdgesOK(st), 5);
-  llStage('ycorners', [0, 1, 2, 3].map((k) => algMacro("U R U' L' U R' U' L", "U R U' L' U R' U' L", k, 'niklas')), (st) => f2lOK(st) && uEdgesOK(st) && uCornersPlaced(st), 3);
+  llStage('ycross', [...uMacros(), algMacro("F R U R' U' F'", "F R U R' U' F'", 0, 'fru', 'alg_fru')], (st) => f2lOK(st) && yEdgesUp(st), 5);
+  llStage('yedges', [...uMacros(), algMacro("R U R' U R U2 R'", "R U R' U R U2 R'", 0, 'sune', 'alg_sune')], (st) => f2lOK(st) && uEdgesOK(st), 5);
+  llStage('ycorners', [0, 1, 2, 3].map((k) => algMacro("U R U' L' U R' U' L", "U R U' L' U R' U' L", k, 'niklas', 'alg_niklas')), (st) => f2lOK(st) && uEdgesOK(st) && uCornersPlaced(st), 3);
 
   // 7. twist corners (R' D' R D at front-right, turning only the top between corners)
   if (f2lOK(s) && uEdgesOK(s) && uCornersPlaced(s) && !isSolved(s)) {
@@ -263,7 +263,7 @@ export function solveBeginner(start: State): Solution {
     for (let i = 0; i < 4; i++) {
       let reps = 0;
       while (s[8] !== s[4] && reps < 6) { s = applyMoves(s, "R' D' R D R' D' R D"); reps += 2; }
-      if (reps) pushChunk(chunks, { label: `R' D' R D × ${reps}`, moves: parseAlg(Array(reps).fill("R' D' R D").join(' ')), kind: 'alg' });
+      if (reps) pushChunk(chunks, { label: `R' D' R D × ${reps}`, moves: parseAlg(Array(reps).fill("R' D' R D").join(' ')), kind: 'alg', voice: `alg_twist_${reps}` });
       if (i < 3) { s = applyMoves(s, ['U']); pushChunk(chunks, { label: 'Turn only the top: bring the next corner to front-right', moves: ['U'], kind: 'adjust' }); }
     }
     for (const m of ['', 'U', 'U2', "U'"]) {

@@ -106,6 +106,6 @@ export function sampleGrid(data: ImageData, size: number, cxIn?: number, cyIn?: 
   return out;
 }
 
-/** Standard colour scheme in Kociemba face order (U R F D L B) when the cube is held white-down, green-front. */
-export const STANDARD_NAMES: ColorName[] = ['yellow', 'orange', 'green', 'white', 'red', 'blue'];
+/** Standard colour scheme in Kociemba face order (U R F D L B) when held yellow-up, white-down, red-front. */
+export const STANDARD_NAMES: ColorName[] = ['yellow', 'green', 'red', 'white', 'blue', 'orange'];
 export const colorsFor = (names: ColorName[]) => names.map((n) => PALETTE[n]);

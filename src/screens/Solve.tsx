@@ -6,14 +6,16 @@ import { describeMove } from '../cube/describe';
 import { invertAlg, isRotation, isSolved } from '../cube/model';
 import { CubeCanvas, CubeCanvasHandle } from '../ui/CubeCanvas';
 import { Mascot } from '../ui/Mascot';
+import { MoveIcon } from '../ui/MoveIcon';
 import { colorsFor, PALETTE } from '../scan/color';
 import { useCamera } from '../hooks/useCamera';
-import { say } from '../audio/voice';
+import { moveClip, preload, speak, hasLine } from '../audio/voice';
 import { sfx } from '../audio/sfx';
 
 interface Step { move: string; stage: number; chunk: number; pos: number; chunkLen: number }
 type Phase = 'thinking' | 'choose' | 'hold' | 'guide' | 'error';
-const SPEEDS = [{ label: 'Relaxed', ms: 4200 }, { label: 'Normal', ms: 2800 }, { label: 'Quick', ms: 1700 }];
+const SPEEDS = [{ label: 'Relaxed', ms: 4500 }, { label: 'Normal', ms: 3000 }, { label: 'Quick', ms: 1900 }];
+const STAGE_CLIP: Record<string, string> = { cross: 'stage_cross', corners: 'stage_corners', middle: 'stage_middle', ycross: 'stage_ycross', yedges: 'stage_yedges', ycorners: 'stage_ycorners', twist: 'stage_twist' };
 
 interface Props { cube: CubeData; onDone: (s: DoneStats) => void; onBack: () => void }
 
@@ -23,30 +25,40 @@ export function Solve({ cube, onDone, onBack }: Props) {
   const [sols, setSols] = useState<Solutions | null>(null);
   const [sol, setSol] = useState<Solution | null>(null);
   const [i, setI] = useState(0);
-  const [intro, setIntro] = useState<number | null>(null); // stage index whose intro card is showing
+  const [intro, setIntro] = useState<number | null>(null);
   const [auto, setAuto] = useState(false);
   const [speed, setSpeed] = useState(1);
-  const [pip, setPip] = useState(cube.source === 'scan');
+  const [liveMode, setLiveMode] = useState(cube.source !== 'demo');
   const viewRef = useRef<CubeCanvasHandle>(null);
   const token = useRef(0);
   const startedAt = useRef(0);
   const cam = useCamera();
 
-  const front = cube.names[2], bottom = cube.names[3];
+  const front = cube.names[2], top = cube.names[0];
+  const standard = front === 'red' && top === 'yellow';
 
   useEffect(() => {
     if (isSolved(cube.state)) { onDone({ moves: 0, ms: 0, method: 'beginner' }); return; }
     let alive = true;
+    preload(['choose', 'hold', 'go', 'stage_cross', 'alg_cross', 'm_R', 'm_Rp', 'm_U', 'm_Up', 'm_F', 'm_Fp', 'm_D', 'm_L', 'm_B', 'solved']);
     solve(cube.state).then((r) => {
       if (!alive) return;
       setSols(r);
       if (!r.beginner && !r.fast) { setPhase('error'); return; }
       setPhase('choose');
-      say('Pick your route. The learn route teaches you the beginner method, stage by stage. The fast route finishes in the fewest moves.');
+      speak('choose');
     });
     return () => { alive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // camera for live mode
+  useEffect(() => {
+    if ((phase === 'hold' || phase === 'guide') && liveMode && cam.status !== 'live' && cam.status !== 'starting') cam.start('user');
+    if (!liveMode && cam.status === 'live') cam.stop();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, liveMode]);
+  const live = liveMode && cam.status !== 'denied' && cam.status !== 'unavailable';
 
   const steps: Step[] = useMemo(() => {
     if (!sol) return [];
@@ -59,41 +71,41 @@ export function Solve({ cube, onDone, onBack }: Props) {
     sfx.pop();
     setSol(s);
     setPhase('hold');
-    say(`Hold your cube with ${front} facing you and ${bottom} on the bottom, just like on screen. Keep it that way the whole time.`);
+    speak(standard ? 'hold' : `Hold your cube with ${top} on top and ${front} facing you. Keep it that way the whole time.`);
   };
 
   const begin = () => {
     sfx.start();
     setPhase('guide');
     startedAt.current = performance.now();
-    if (pip) cam.start('user');
     if (sol?.method === 'beginner') setIntro(steps[0]?.stage ?? 0);
+    else speak('go');
   };
 
   const cur = steps[i];
   const stage = cur && sol ? sol.stages[cur.stage] : null;
   const chunk = cur && stage ? stage.chunks[cur.chunk] : null;
 
-  // show/loop the current move and speak it
+  // show + speak the current move
   useEffect(() => {
     if (phase !== 'guide' || !sol) return;
     const v = viewRef.current?.view;
     if (!cur) {
       v?.showMove(null);
       sfx.solved();
-      say('Yes! You solved it! Amazing work.');
-      const t = setTimeout(() => onDone({ moves: steps.filter((s) => !isRotation(s.move)).length, ms: performance.now() - startedAt.current, method: sol.method }), 900);
+      speak('solved');
+      const t = setTimeout(() => onDone({ moves: steps.filter((s) => !isRotation(s.move)).length, ms: performance.now() - startedAt.current, method: sol.method }), 1100);
       return () => clearTimeout(t);
     }
     if (intro !== null) { v?.showMove(null); return; }
     const myToken = token.current;
-    const wait = setTimeout(() => {
-      if (token.current !== myToken) return;
-      v?.showMove(cur.move);
-    }, 30);
-    const w = describeMove(cur.move);
-    const chunkIntro = cur.pos === 0 && chunk && chunk.kind === 'alg' && cur.chunkLen > 2 ? `${chunk.label.replace(/×/g, 'times')}. ` : '';
-    say(chunkIntro + w.speak, { rate: 1.05 });
+    const wait = setTimeout(() => { if (token.current === myToken) v?.showMove(cur.move); }, 30);
+    const lines: string[] = [];
+    if (cur.pos === 0 && chunk?.voice && cur.chunkLen > 2) lines.push(chunk.voice);
+    lines.push(hasLine(moveClip(cur.move)) ? moveClip(cur.move) : describeMove(cur.move).speak);
+    speak(lines);
+    // warm up the next few clips
+    preload(steps.slice(i + 1, i + 4).map((s) => moveClip(s.move)));
     return () => clearTimeout(wait);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [i, phase, intro, sol]);
@@ -102,9 +114,8 @@ export function Solve({ cube, onDone, onBack }: Props) {
   useEffect(() => {
     if (intro === null || !sol) return;
     const st = sol.stages[intro];
-    const prevDone = intro > 0 ? `Nice, ${sol.stages[intro - 1].title} done! ` : '';
     if (intro > 0) sfx.stage();
-    say(`${prevDone}Stage ${intro + 1}: ${st.title}. ${st.goal} Tip: ${st.tip}`);
+    speak([...(intro > 0 ? ['stage_nice'] : []), STAGE_CLIP[st.id] ?? `${st.title}. ${st.goal}`]);
   }, [intro, sol]);
 
   const next = useCallback(async () => {
@@ -114,6 +125,7 @@ export function Solve({ cube, onDone, onBack }: Props) {
     if (!s) return;
     const t = ++token.current;
     sfx.turn();
+    if (navigator.vibrate) try { navigator.vibrate(12); } catch { /* ignore */ }
     const nextStep = steps[i + 1];
     const v = viewRef.current?.view;
     const p = v?.commit(s.move, 260);
@@ -133,17 +145,15 @@ export function Solve({ cube, onDone, onBack }: Props) {
     setI(i - 1);
   }, [phase, i, steps]);
 
-  // auto-play
   useEffect(() => {
     if (!auto || phase !== 'guide' || !cur) return;
-    const t = setTimeout(() => next(), intro !== null ? 6500 : SPEEDS[speed].ms);
+    const t = setTimeout(() => next(), intro !== null ? 7500 : SPEEDS[speed].ms);
     return () => clearTimeout(t);
   }, [auto, phase, cur, intro, speed, next]);
 
-  // keyboard: space/→ next, ← back, A auto
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement) return;
+      if (e.target instanceof HTMLSelectElement) return;
       if (e.key === ' ' || e.key === 'ArrowRight' || e.key === 'Enter') { e.preventDefault(); next(); }
       else if (e.key === 'ArrowLeft') back();
       else if (e.key.toLowerCase() === 'a') setAuto((a) => !a);
@@ -151,10 +161,6 @@ export function Solve({ cube, onDone, onBack }: Props) {
     addEventListener('keydown', onKey);
     return () => removeEventListener('keydown', onKey);
   }, [next, back]);
-
-  const togglePip = () => {
-    if (pip) { cam.stop(); setPip(false); } else { setPip(true); cam.start('user'); }
-  };
 
   if (phase === 'thinking') {
     return <div className="center-card card"><Mascot size={100} mood="think" className="bob" /><h2>Cubr is thinking…</h2><p className="muted">Working out the best way to solve your cube.</p></div>;
@@ -199,62 +205,73 @@ export function Solve({ cube, onDone, onBack }: Props) {
   const total = steps.length;
   const words = cur ? describeMove(cur.move) : null;
   const introStage = intro !== null && sol ? sol.stages[intro] : null;
+  const tapBg = (e: React.MouseEvent) => {
+    const el = e.target as HTMLElement;
+    if (el === e.currentTarget || el.classList.contains('vignette') || el.tagName === 'VIDEO') next();
+  };
 
   return (
-    <div className="solve">
-      <div className="solve-stage">
+    <div className={`solve full-stage ${live ? 'is-live' : 'is-3d'}`} onClick={tapBg}>
+      {live && <video ref={cam.videoRef} className="mirror" autoPlay playsInline muted />}
+      <div className="vignette" />
+
+      <div className={`solve-cube ${live ? 'float' : 'hero'}`}>
+        {live && <span className="float-label">3D guide</span>}
         <CubeCanvas ref={viewRef} state={cube.state} colors={colors} peek onTap={next} label="Your cube, showing the next move" />
-        {phase === 'hold' && (
-          <div className="overlay-card card">
-            <h2>Hold your cube like this</h2>
-            <p>
-              <b style={{ color: PALETTE[front] }}>{front.toUpperCase()}</b> facing you, <b style={{ color: PALETTE[bottom] }}>{bottom.toUpperCase()}</b> on the bottom.
-              Keep it that way. Cubr will tell you when to turn the whole cube.
-            </p>
-            <button className="btn-toy big" onClick={begin}>I'm ready →</button>
-          </div>
-        )}
-        {introStage && (
-          <div className="overlay-card card stage-intro">
-            <p className="step-n">Stage {intro! + 1} of {sol!.stages.length}</p>
-            <h2>{introStage.title}</h2>
-            <p>{introStage.goal}</p>
-            <p className="tip">💡 {introStage.tip}</p>
-            <button className="btn-toy" onClick={next}>Let's go →</button>
-          </div>
-        )}
-        {pip && phase === 'guide' && (
-          <div className="pip">
-            <video ref={cam.videoRef} className="mirror" autoPlay playsInline muted />
-            {cam.status !== 'live' && <span>camera…</span>}
-          </div>
-        )}
-        {phase === 'guide' && <p className="tap-hint">Tap the cube or press Space for the next move</p>}
       </div>
 
       {phase === 'guide' && sol && (
-        <aside className="solve-panel">
+        <div className="solve-top">
           {sol.method === 'beginner' && (
             <ol className="stage-rail">
               {sol.stages.map((st, si) => (
                 <li key={st.id} className={cur ? (si < cur.stage ? 'done' : si === cur.stage ? 'now' : '') : 'done'}>
-                  <span>{si + 1}</span>{st.title}
+                  <span>{si + 1}</span><em>{st.title}</em>
                 </li>
               ))}
             </ol>
           )}
-          <div className="progress" aria-label={`Move ${Math.min(i + 1, total)} of ${total}`}><i style={{ width: `${(i / Math.max(1, total)) * 100}%` }} /></div>
+          <div className="progress"><i style={{ width: `${(i / Math.max(1, total)) * 100}%` }} /></div>
+        </div>
+      )}
 
-          {cur && words && (
-            <div className={`move-card card ${isRotation(cur.move) ? 'rotate' : ''}`} aria-live="polite">
-              <div className="move-big mono">{isRotation(cur.move) ? '🔄' : cur.move}</div>
-              <div>
-                <p className="move-words">{words.long}</p>
-                <p className="muted small">Move {i + 1} of {total}{stage && sol.method === 'beginner' ? ` · ${stage.title}` : ''}</p>
-              </div>
-            </div>
-          )}
-          {chunk && cur && (
+      {phase === 'hold' && (
+        <div className="overlay-card card center-pop">
+          <h2>Hold your cube like this</h2>
+          <div className="hold-rule">
+            <span className="rule"><i style={{ background: PALETTE[top] }} />Top <b>{top}</b></span>
+            <span className="rule"><i style={{ background: PALETTE[front] }} />Facing you <b>{front}</b></span>
+            <span className="rule"><i style={{ background: PALETTE[cube.names[3]] }} />Bottom <b>{cube.names[3]}</b></span>
+          </div>
+          <p>Keep it that way. Cubr will tell you when to turn the whole cube.</p>
+          <button className="btn-toy big" onClick={begin}>I'm ready →</button>
+        </div>
+      )}
+
+      {introStage && (
+        <div className="overlay-card card center-pop stage-intro">
+          <p className="step-n">Stage {intro! + 1} of {sol!.stages.length}</p>
+          <h2>{introStage.title}</h2>
+          <p>{introStage.goal}</p>
+          <p className="tip">💡 {introStage.tip}</p>
+          <button className="btn-toy" onClick={next}>Let's go →</button>
+        </div>
+      )}
+
+      {phase === 'guide' && cur && words && !introStage && (
+        <div className={`instr ${isRotation(cur.move) ? 'rotate' : ''}`} key={i} aria-live="polite">
+          <MoveIcon move={cur.move} size={live ? 150 : 128} />
+          <div className="instr-text">
+            <span className="instr-note mono">{cur.move}</span>
+            <p className="instr-words">{words.long}</p>
+            <p className="instr-sub">Move {i + 1} of {total}{stage && sol?.method === 'beginner' ? ` · ${stage.title}` : ''}</p>
+          </div>
+        </div>
+      )}
+
+      {phase === 'guide' && sol && (
+        <div className="solve-bottom">
+          {chunk && cur && !introStage && (
             <div className="chunk">
               <p className="label">{chunk.kind === 'alg' ? `Algorithm · ${chunk.label}` : chunk.label}</p>
               <div className="chips">
@@ -262,22 +279,24 @@ export function Solve({ cube, onDone, onBack }: Props) {
               </div>
             </div>
           )}
-          {stage && sol.method === 'beginner' && <p className="tip small">💡 {stage.tip}</p>}
-
           <div className="controls">
             <button className="btn-round" onClick={back} disabled={i === 0} aria-label="Previous move">◀</button>
             <button className="btn-toy big grow" onClick={next}>{intro !== null ? "Let's go" : 'Done, next'} →</button>
             <button className={`btn-round ${auto ? 'on' : ''}`} onClick={() => setAuto(!auto)} aria-label={auto ? 'Pause auto-play' : 'Auto-play'}>{auto ? '⏸' : '▶'}</button>
           </div>
           <div className="row small-row">
-            <label className="muted small">Auto speed
+            <label className="muted small">Auto
               <select value={speed} onChange={(e) => setSpeed(+e.target.value)}>
                 {SPEEDS.map((s, k) => <option key={s.label} value={k}>{s.label}</option>)}
               </select>
             </label>
-            <button className={`chip ${pip ? 'on' : ''}`} onClick={togglePip}>📷 Mirror cam</button>
+            <div className="seg" role="group" aria-label="View">
+              <button className={live ? 'on' : ''} onClick={() => setLiveMode(true)}>📷 Live</button>
+              <button className={!live ? 'on' : ''} onClick={() => setLiveMode(false)}>🧊 3D</button>
+            </div>
           </div>
-        </aside>
+          <p className="tap-hint">Tap anywhere or press Space for the next move</p>
+        </div>
       )}
     </div>
   );

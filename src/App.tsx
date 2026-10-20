@@ -9,6 +9,7 @@ import { setVoiceEnabled, stopVoice } from './audio/voice';
 import { applyMoves, randomScramble, solvedState, State } from './cube/model';
 import { ColorName, STANDARD_NAMES } from './scan/color';
 import type { Solution } from './cube/beginner';
+import { Mascot, startEyeTracking } from './ui/Mascot';
 
 export interface CubeData { state: State; names: ColorName[]; scramble?: string[]; source: 'scan' | 'demo' | 'manual' }
 export interface DoneStats { moves: number; ms: number; method: Solution['method'] }
@@ -28,6 +29,7 @@ export default function App() {
   useEffect(() => { setSfxEnabled(sound); save('cubr.sound', sound); }, [sound]);
   useEffect(() => { setVoiceEnabled(voice); save('cubr.voice', voice); }, [voice]);
   useEffect(() => { window.scrollTo(0, 0); }, [screen]);
+  useEffect(() => { startEyeTracking(); }, []);
 
   const go = useCallback((s: Screen) => { stopVoice(); setScreen(s); }, []);
 
@@ -59,8 +61,8 @@ export default function App() {
       <div className="bg-blobs" aria-hidden="true"><i /><i /><i /></div>
       <header className="topbar">
         <button className="logo" onClick={() => go('home')} aria-label="Cubr home">
-          <span className="logo-mark" aria-hidden="true"><i /><i /><i /><i /></span>
-          cubr
+          <Mascot size={44} id="logo" className="logo-mascot" />
+          <span className="wordmark">cubr</span>
         </button>
         {toggles}
       </header>

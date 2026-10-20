@@ -5,7 +5,7 @@ import { Net } from '../ui/Net';
 import { Mascot } from '../ui/Mascot';
 import { validate } from '../cube/pieces';
 import { colorsFor } from '../scan/color';
-import { say } from '../audio/voice';
+import { speak } from '../audio/voice';
 import { sfx } from '../audio/sfx';
 import { warmUpSolver } from '../cube/solverClient';
 
@@ -17,10 +17,10 @@ export function Review({ cube, onChange, onSolve, onRescan }: Props) {
 
   useEffect(() => {
     warmUpSolver();
-    if (cube.source === 'demo') say("Demo time! Scramble a solved cube with these moves, or just watch. Tap Solve when you're ready.");
-    else if (cube.source === 'manual') say('Paint each sticker to match your cube. Hold it with green in front and yellow on top.');
-    else if (v.ok) { sfx.stage(); say("Got it! Your cube looks good. Check it matches, then tap Solve."); }
-    else { sfx.error(); say('Hmm, a few stickers look off. Tap any wrong sticker to fix it.'); }
+    if (cube.source === 'demo') speak('review_demo');
+    else if (cube.source === 'manual') speak('review_manual');
+    else if (v.ok) { sfx.stage(); speak('review_ok'); }
+    else { sfx.error(); speak('review_fix'); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -48,7 +48,7 @@ export function Review({ cube, onChange, onSolve, onRescan }: Props) {
             <h2>{title}</h2>
             <p className="muted">
               {cube.source === 'manual'
-                ? 'Tap a sticker, pick its colour. Front = green, top = yellow.'
+                ? 'Tap a sticker, pick its colour. Front = red, top = yellow, bottom = white.'
                 : 'Compare with your real cube. Tap any sticker to change it.'}
             </p>
           </div>
@@ -56,7 +56,7 @@ export function Review({ cube, onChange, onSolve, onRescan }: Props) {
 
         {cube.scramble && (
           <div className="scramble">
-            <p className="label">Scramble a solved cube (green front, yellow top) with:</p>
+            <p className="label">Scramble a solved cube (red front, yellow top) with:</p>
             <p className="mono">{cube.scramble.join(' ')}</p>
           </div>
         )}

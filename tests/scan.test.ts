@@ -4,7 +4,7 @@ import { fastValid, validate } from '../src/cube/pieces';
 import { resolveScan, rotIndex, Capture } from '../src/scan/resolve';
 import { refLab, ColorName, Lab } from '../src/scan/color';
 
-const NAMES: ColorName[] = ['yellow', 'orange', 'green', 'white', 'red', 'blue'];
+const NAMES: ColorName[] = ['yellow', 'green', 'red', 'white', 'blue', 'orange'];
 // approx sRGB for refs (only rgb used for the guess heuristic)
 const RGB: Record<ColorName, [number, number, number]> = { white: [225, 225, 220], yellow: [235, 215, 40], red: [200, 30, 40], orange: [240, 120, 30], green: [30, 190, 90], blue: [30, 90, 210] };
 

@@ -21,8 +21,9 @@ export function rotIndex(k: number, q: number): number {
   return r * 3 + c;
 }
 
-const ROLE_A: Record<ColorName, number> = { yellow: 0, orange: 1, green: 2, white: 3, red: 4, blue: 5 };
-const ROLE_B: Record<ColorName, number> = { yellow: 0, red: 1, green: 2, white: 3, orange: 4, blue: 5 };
+// yellow top, white bottom, red front (green on the right). ROLE_B handles mirror-scheme cubes.
+const ROLE_A: Record<ColorName, number> = { yellow: 0, green: 1, red: 2, white: 3, blue: 4, orange: 5 };
+const ROLE_B: Record<ColorName, number> = { yellow: 0, blue: 1, red: 2, white: 3, green: 4, orange: 5 };
 
 export function nameCentres(captures: Capture[]): ColorName[] {
   const cost = captures.map((cap) => {
