@@ -50,8 +50,26 @@ src/vendor/    cubejs (MIT) Kociemba solver, wrapped as an ES module
 - **Live solve mode**: your camera fills the screen, with faded overlay instructions, vector move diagrams, a floating 3D guide and voice for every move. There's a 3D-only mode too.
 - **Finale**: party poppers and confetti with your moves and time, then a 3-2-1 victory selfie with your time and the Cubr logo, ready to download or share.
 
+## v3: Learn, Tricks, Speed
+- **Learn**: 15 lessons in 4 tracks (Basics → beginner method → 4-look last layer → CFOP).
+  - Every lesson has an interactive 3D algorithm player (play, pause, step, scrub, speed) and a spoken intro.
+  - Hands-on widgets: a piece explorer and a notation pad.
+  - Progress and XP are saved on the device.
+- **Tricks**:
+  - 8 patterns with 3D playback (checkerboard, superflip, cube-in-a-cube…).
+  - A finger-tricks guide with move diagrams.
+  - A library of 2-look OLL plus all 21 PLLs, with case diagrams.
+- **Speed**:
+  - A WCA-style timer: hold to arm, release to start, optional 15-second inspection with spoken 8/12-second warnings, and +2/DNF.
+  - Random-state scrambles with a cube preview.
+  - Best, ao5, ao12, best ao5 and mean, plus a progress chart.
+  - A level ladder (Sub-3:00 → Sub-15) linking to the right lesson, and a daily streak.
+  - Algorithm drills that repeat the cases you miss more often.
+- Every algorithm and lesson demo is checked by simulation (`npm test`, 76 tests).
+- Navigation: a top bar on desktop and a bottom tab bar on phones, with hash routes (`#/learn/cross`, `#/tricks/algs`, `#/speed/drills`).
+
 ## Roadmap
-Phase 2 Learn section · Phase 3 Speed (timer, stats, CFOP trainer) · Phase 4 Tricks, gamification, automatic move checking · Phase 5 accounts & leaderboard.
+Next: automatic move checking through the camera · full OLL (57) · accounts, cloud sync & leaderboards · Hindi voice.
 
 ---
 Rubik's Cube is a trademark of Spin Master Ltd. Cubr is an independent project and is not affiliated with it.

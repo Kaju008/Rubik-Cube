@@ -1,24 +1,6 @@
 // Three floating "app window" cards with vector illustrations: set up → show the cube → follow along.
+import { IsoCube } from './IsoCube';
 const Y = '#FFD93B', R = '#FF3B4E', O = '#FF8A1F', G = '#22D17A', B = '#2F7BFF', W = '#F4F1EA', P = '#FF4FD8';
-
-/** Small isometric cube built from 27 visible sticker polygons. */
-function IsoCube({ x, y, s, top, left, right }: { x: number; y: number; s: number; top: string[]; left: string[]; right: string[] }) {
-  // top: rhombus; left & right: parallelograms. s = sticker size along the edge
-  const cells: JSX.Element[] = [];
-  const h = s * 0.5;
-  const pt = (a: number, b: number) => `${x + (a - b) * s * 0.866},${y + (a + b) * h}`;
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
-    cells.push(<polygon key={`t${i}${j}`} points={[pt(i, j), pt(i + 1, j), pt(i + 1, j + 1), pt(i, j + 1)].join(' ')} fill={top[i * 3 + j]} stroke="#101018" strokeWidth={s * 0.14} strokeLinejoin="round" />);
-  }
-  // left face (below the left edge of the top rhombus)
-  const lp = (a: number, b: number) => `${x + (-3 + a) * s * 0.866},${y + (3 + a) * h + b * s}`;
-  const rp = (a: number, b: number) => `${x + a * s * 0.866},${y + (6 - a) * h + b * s}`;
-  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
-    cells.push(<polygon key={`l${i}${j}`} points={[lp(i, j), lp(i + 1, j), lp(i + 1, j + 1), lp(i, j + 1)].join(' ')} fill={left[j * 3 + i]} stroke="#101018" strokeWidth={s * 0.14} strokeLinejoin="round" style={{ filter: 'brightness(.88)' }} />);
-    cells.push(<polygon key={`r${i}${j}`} points={[rp(i, j), rp(i + 1, j), rp(i + 1, j + 1), rp(i, j + 1)].join(' ')} fill={right[j * 3 + i]} stroke="#101018" strokeWidth={s * 0.14} strokeLinejoin="round" style={{ filter: 'brightness(.72)' }} />);
-  }
-  return <g>{cells}</g>;
-}
 
 function SetupArt() {
   return (

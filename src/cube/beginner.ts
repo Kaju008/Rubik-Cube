@@ -138,7 +138,7 @@ function buildCrossTable() {
   crossTable = dist;
 }
 
-function solveCross(s: State): string[] {
+export function solveCross(s: State): string[] {
   if (!crossTable) buildCrossTable();
   const white = s[31];
   const loc = CROSS_TARGETS.map((target) => {

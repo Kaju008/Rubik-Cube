@@ -46,7 +46,7 @@ function rot(v: V3, axis: number, dir: number): V3 {
   return [-dir * y, dir * x, z];
 }
 
-interface MoveSpec { axis: number; layer: number | 'all'; dir: number }
+interface MoveSpec { axis: number; layer: number | number[] | 'all'; dir: number }
 const BASE: Record<string, MoveSpec> = {
   R: { axis: 0, layer: 1, dir: -1 },
   L: { axis: 0, layer: -1, dir: 1 },
@@ -60,13 +60,21 @@ const BASE: Record<string, MoveSpec> = {
   x: { axis: 0, layer: 'all', dir: -1 },
   y: { axis: 1, layer: 'all', dir: -1 },
   z: { axis: 2, layer: 'all', dir: -1 },
+  // wide (two-layer) moves
+  r: { axis: 0, layer: [1, 0], dir: -1 },
+  l: { axis: 0, layer: [-1, 0], dir: 1 },
+  u: { axis: 1, layer: [1, 0], dir: -1 },
+  d: { axis: 1, layer: [-1, 0], dir: 1 },
+  f: { axis: 2, layer: [1, 0], dir: -1 },
+  b: { axis: 2, layer: [-1, 0], dir: 1 },
 };
+const layersOf = (l: MoveSpec['layer']): number[] | 'all' => (l === 'all' ? 'all' : Array.isArray(l) ? l : [l]);
 
 /** For animation: which axis/layer turns and by how many signed quarter turns (right-hand rule). */
-export function moveGeometry(m: string): { axis: number; layer: number | 'all'; quarters: number } {
+export function moveGeometry(m: string): { axis: number; layers: number[] | 'all'; quarters: number } {
   const spec = BASE[m[0]];
   const amt = m.endsWith('2') ? 2 : m.endsWith("'") ? -1 : 1;
-  return { axis: spec.axis, layer: spec.layer, quarters: spec.dir * amt };
+  return { axis: spec.axis, layers: layersOf(spec.layer), quarters: spec.dir * amt };
 }
 
 /** Permutation as "to" array: the sticker at i moves to to[i]. */
@@ -75,7 +83,8 @@ export type Perm = Uint8Array;
 function quarterPerm(spec: MoveSpec): Perm {
   const to = new Uint8Array(54);
   for (const f of FACELETS) {
-    const inLayer = spec.layer === 'all' || f.p[spec.axis] === spec.layer;
+    const ls = layersOf(spec.layer);
+    const inLayer = ls === 'all' || ls.includes(f.p[spec.axis]);
     if (!inLayer) { to[f.idx] = f.idx; continue; }
     const j = LOOKUP.get(key(rot(f.p, spec.axis, spec.dir), rot(f.n, spec.axis, spec.dir)));
     if (j === undefined) throw new Error('bad geometry');
@@ -108,7 +117,7 @@ for (const [name, spec] of Object.entries(BASE)) {
 }
 
 export function parseAlg(alg: string): string[] {
-  return alg.replace(/’/g, "'").trim().split(/\s+/).filter(Boolean);
+  return alg.replace(/’/g, "'").replace(/([RLUDFBrludfbMESxyz])w/g, (_, c: string) => c.toLowerCase()).trim().split(/\s+/).filter(Boolean);
 }
 
 export function algPerm(moves: string[] | string): Perm {

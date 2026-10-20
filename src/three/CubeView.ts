@@ -138,12 +138,12 @@ export class CubeView {
   }
 
   private startAnim(move: string, dur: number, commit: boolean, done: () => void = () => {}) {
-    const { axis, layer, quarters } = moveGeometry(move);
+    const { axis, layers, quarters } = moveGeometry(move);
     const pivot = new THREE.Group();
     this.root.add(pivot);
     for (const c of this.cubies) {
       const home = c.userData.home as THREE.Vector3;
-      if (layer === 'all' || Math.round(home.getComponent(axis)) === layer) pivot.add(c);
+      if (layers === 'all' || layers.includes(Math.round(home.getComponent(axis)))) pivot.add(c);
     }
     this.anim = { pivot, axis, target: quarters * (Math.PI / 2), start: performance.now(), dur: Math.abs(quarters) === 2 ? dur * 1.5 : dur, move, commit, done };
   }
@@ -174,8 +174,10 @@ export class CubeView {
   private setArrow(move: string | null) {
     if (this.arrow) { this.root.remove(this.arrow); this.arrow.traverse((o) => (o as THREE.Mesh).geometry?.dispose()); this.arrow = null; }
     if (!move) return;
-    const { axis, layer, quarters } = moveGeometry(move);
-    const R = layer === 'all' ? 2.35 : 1.08;
+    const { axis, layers, quarters } = moveGeometry(move);
+    const outer = layers === 'all' || layers.every((l) => l === 0) ? 0 : layers.find((l) => l !== 0)!;
+    const layer: number | 'all' = layers === 'all' ? 'all' : outer;
+    const R = layer === 'all' || layer === 0 ? (layer === 'all' ? 2.35 : 1.9) : 1.08;
     const arc = Math.PI * 1.35;
     const mat = new THREE.MeshBasicMaterial({ color: 0xff4fd8, transparent: true, opacity: 0.95, depthTest: false });
     const g = new THREE.Group();
@@ -199,7 +201,7 @@ export class CubeView {
     g.rotation.z = Math.PI * 0.32;
     const axisVec = new THREE.Vector3(axis === 0 ? 1 : 0, axis === 1 ? 1 : 0, axis === 2 ? 1 : 0);
     inner.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), axisVec.clone().multiplyScalar(Math.sign(quarters)));
-    inner.position.copy(axisVec.multiplyScalar(layer === 'all' ? 0 : layer * 1.58));
+    inner.position.copy(axisVec.multiplyScalar(layer === 'all' || layer === 0 ? 0 : layer * 1.58));
     this.arrow = inner;
     this.root.add(inner);
   }

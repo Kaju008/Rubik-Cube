@@ -103,4 +103,8 @@ export function voiceEnabled() { return enabled; }
 export const voiceSupported = () => true;
 
 /** Clip id for a move, e.g. R' -> m_Rp */
-export const moveClip = (m: string) => `m_${m[0]}${m.endsWith("'") ? 'p' : m.endsWith('2') ? '2' : ''}`;
+export const moveClip = (m: string) => {
+  const suf = m.endsWith("'") ? 'p' : m.endsWith('2') ? '2' : '';
+  // wide moves (r, f, …) get their own prefix so file names never clash on case-insensitive disks
+  return 'rludfb'.includes(m[0]) ? `w_${m[0]}${suf}` : `m_${m[0]}${suf}`;
+};

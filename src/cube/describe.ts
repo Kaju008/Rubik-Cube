@@ -3,6 +3,8 @@ export interface MoveWords { short: string; long: string; speak: string }
 
 const FACE_NAME: Record<string, string> = {
   R: 'Right side', L: 'Left side', U: 'Top', D: 'Bottom', F: 'Front', B: 'Back',
+  r: 'Right two layers', l: 'Left two layers', u: 'Top two layers', d: 'Bottom two layers', f: 'Front two layers', b: 'Back two layers',
+  M: 'Middle slice', E: 'Equator slice', S: 'Standing slice',
 };
 
 const DIR: Record<string, [string, string]> = {
@@ -13,6 +15,9 @@ const DIR: Record<string, [string, string]> = {
   D: ['to the right', 'to the left'],
   F: ['clockwise', 'counter-clockwise'],
   B: ['top row to the left', 'top row to the right'],
+  r: ['up', 'down'], l: ['down', 'up'], u: ['to the left', 'to the right'], d: ['to the right', 'to the left'],
+  f: ['clockwise', 'counter-clockwise'], b: ['top to the left', 'top to the right'],
+  M: ['down', 'up'], E: ['to the right', 'to the left'], S: ['clockwise', 'counter-clockwise'],
 };
 
 const spokenNotation = (m: string) => {
@@ -29,13 +34,13 @@ export function describeMove(m: string): MoveWords {
       m === 'y' ? 'Turn the whole cube so the right side faces you'
       : m === "y'" ? 'Turn the whole cube so the left side faces you'
       : m === 'y2' ? 'Turn the whole cube around, back to front'
-      : m === 'x' ? 'Tip the whole cube forward-up: front goes to the top'
-      : m === "x'" ? 'Tip the whole cube: top comes to the front'
+      : m === 'x' ? 'Tip the whole cube up: the front goes to the top'
+      : m === "x'" ? 'Tip the whole cube down: the top comes to the front'
       : m === 'x2' ? 'Flip the whole cube upside-down'
       : m === 'z' ? 'Roll the whole cube clockwise'
       : m === "z'" ? 'Roll the whole cube counter-clockwise'
       : 'Roll the whole cube upside-down';
-    return { short: 'Rotate cube', long: words, speak: words + '. Keep white on the bottom.' };
+    return { short: 'Rotate cube', long: words, speak: words + '.' };
   }
   const name = FACE_NAME[f];
   if (m.endsWith('2')) {

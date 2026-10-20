@@ -35,3 +35,17 @@ describe('model', () => {
     expect(validate(e).ok).toBe(false);
   });
 });
+
+describe('wide and slice moves', () => {
+  it('r = R M\', f = F S, u = U E\'', () => {
+    const s = applyMoves(solvedState(), "R U F'");
+    expect(Array.from(applyMoves(s, ['r']))).toEqual(Array.from(applyMoves(s, ['R', "M'"])));
+    expect(Array.from(applyMoves(s, ['f']))).toEqual(Array.from(applyMoves(s, ['F', 'S'])));
+    expect(Array.from(applyMoves(s, ['u']))).toEqual(Array.from(applyMoves(s, ['U', "E'"])));
+    expect(Array.from(applyMoves(s, ['l']))).toEqual(Array.from(applyMoves(s, ['L', 'M'])));
+    expect(Array.from(applyMoves(s, ['d']))).toEqual(Array.from(applyMoves(s, ['D', 'E'])));
+    expect(Array.from(applyMoves(s, ['b']))).toEqual(Array.from(applyMoves(s, ['B', "S'"])));
+    // r = L x (whole-cube equivalence)
+    expect(Array.from(applyMoves(s, ['r']))).toEqual(Array.from(applyMoves(s, ['L', 'x'])));
+  });
+});

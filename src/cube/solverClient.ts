@@ -7,6 +7,7 @@ let worker: Worker | null = null;
 let readyPromise: Promise<void> | null = null;
 let nextId = 1;
 const pending = new Map<number, (s: Solutions) => void>();
+const scrambleWaits = new Map<number, (s: string | null) => void>();
 
 /** Start the solver in the background as soon as the app loads. */
 export function warmUpSolver(): Promise<void> {
@@ -17,6 +18,7 @@ export function warmUpSolver(): Promise<void> {
       worker.onmessage = (ev) => {
         const d = ev.data;
         if (d.type === 'ready' || d.type === 'error') resolve();
+        if (d.type === 'scramble') { scrambleWaits.get(d.id)?.(d.scramble); scrambleWaits.delete(d.id); }
         if (d.type === 'solution') {
           pending.get(d.id)?.(d as Solutions);
           pending.delete(d.id);
@@ -42,4 +44,14 @@ export async function solve(state: State): Promise<Solutions> {
     pending.set(id, resolve);
     worker!.postMessage({ id, state: Array.from(state) });
   });
+}
+
+/** Random-state scramble (WCA style) from the background solver; falls back to a random-move scramble. */
+export async function getScramble(): Promise<string> {
+  await warmUpSolver();
+  const { randomScramble } = await import('./model');
+  if (!worker) return randomScramble(20).join(' ');
+  const id = nextId++;
+  const s = await new Promise<string | null>((resolve) => { scrambleWaits.set(id, resolve); worker!.postMessage({ type: 'scramble', id }); });
+  return s ?? randomScramble(20).join(' ');
 }

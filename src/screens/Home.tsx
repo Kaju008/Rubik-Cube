@@ -6,6 +6,9 @@ import { applyMoves, solvedState } from '../cube/model';
 import { speak, preload } from '../audio/voice';
 import { unlockAudio, sfx } from '../audio/sfx';
 import { colorsFor, STANDARD_NAMES } from '../scan/color';
+import { nav } from '../router';
+import { LESSONS, loadDone } from '../learn/lessons';
+import { bestSingle, fmt, loadSolves } from '../speed/stats';
 
 const LINES = [
   "Hey, I'm Cubr! 👋",
@@ -17,6 +20,8 @@ const HERO_STATE = applyMoves(solvedState(), "R U R' U' F2 D L' B");
 export function Home({ onStart, onDemo }: { onStart: () => void; onDemo: () => void }) {
   const [typed, setTyped] = useState<string[]>(['']);
   const spoke = useRef(false);
+  const [done] = useState(loadDone);
+  const [pb] = useState(() => bestSingle(loadSolves()));
 
   useEffect(() => {
     preload(['intro_home', 'scan_intro', 'scan_red']);
@@ -68,9 +73,21 @@ export function Home({ onStart, onDemo }: { onStart: () => void; onDemo: () => v
       <section className="soon">
         <h2>More ways to play</h2>
         <div className="soon-grid">
-          <article className="soon-card c-green"><span className="tag">Coming soon</span><h3>Learn</h3><p>Beginner to advanced, stage by stage, on your own cube.</p></article>
-          <article className="soon-card c-pink"><span className="tag">Coming soon</span><h3>Tricks</h3><p>Finger tricks, patterns and algorithms for people who know the basics.</p></article>
-          <article className="soon-card c-blue"><span className="tag">Coming soon</span><h3>Speed</h3><p>Timer, personal bests and drills to get faster every week.</p></article>
+          <button className="soon-card c-green no-greet" onClick={() => nav('/learn')}>
+            <span className="tag">{done.length ? `${done.length}/${LESSONS.length} lessons` : `${LESSONS.length} lessons`}</span>
+            <h3>🎓 Learn</h3><p>Beginner to advanced, stage by stage, with a 3D cube that plays every move.</p>
+            <span className="go">Start learning →</span>
+          </button>
+          <button className="soon-card c-pink no-greet" onClick={() => nav('/tricks')}>
+            <span className="tag">8 patterns · 31 algs</span>
+            <h3>✨ Tricks</h3><p>Show-off patterns, finger tricks, and the full OLL and PLL library.</p>
+            <span className="go">Explore tricks →</span>
+          </button>
+          <button className="soon-card c-blue no-greet" onClick={() => nav('/speed')}>
+            <span className="tag">{pb ? `PB ${fmt(pb)}` : 'Timer + drills'}</span>
+            <h3>⏱ Speed</h3><p>Pro timer, averages, progress levels and algorithm drills.</p>
+            <span className="go">Time a solve →</span>
+          </button>
         </div>
       </section>
 

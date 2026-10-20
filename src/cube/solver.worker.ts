@@ -14,6 +14,12 @@ try {
 }
 
 self.onmessage = (ev: MessageEvent) => {
+  if (ev.data?.type === 'scramble') {
+    let scramble: string | null = null;
+    try { if (ready) scramble = (Kociemba as unknown as { scramble: () => string }).scramble(); } catch { /* fall back on main thread */ }
+    (self as unknown as Worker).postMessage({ type: 'scramble', id: ev.data.id, scramble });
+    return;
+  }
   const { id, state } = ev.data as { id: number; state: number[] };
   const s: State = Uint8Array.from(state);
   let beginner: Solution | null = null;
