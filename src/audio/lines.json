@@ -7,7 +7,7 @@
   "scan_blue": "One more turn. Show me the blue side.",
   "scan_yellow": "Now the top. Turn red back to the front, then tip the yellow top towards the camera.",
   "scan_white": "Last one! Flip the cube so the white bottom faces the camera.",
-  "scan_center": "Please place the cube in the centre of the box.",
+  "scan_center": "I can't see a cube. Please hold it inside the box, in the centre.",
   "scan_closer": "Bring the cube a little closer, so it fills the box.",
   "already_red": "I already have that side. Please show me the red side.",
   "already_green": "I already have that side. Please show me the green side.",
@@ -149,5 +149,10 @@
   "undo_start": "Let's undo. Follow the reverse moves.",
   "undo_done": "All undone. Let's carry on.",
   "replan_done": "New route ready. Let's keep going!",
-  "wrong_prompt": "Tap the moves you actually did, and I'll plan a new route from there."
+  "wrong_prompt": "Tap the moves you actually did, and I'll plan a new route from there.",
+  "tut_hold": "First, how to hold it. Pinch the cube with two fingers: your index finger on the yellow top, and your thumb under the white bottom. Then turn the red side to face the camera.",
+  "tut_turn": "To show the next side, turn the whole cube to the left. Red first, then green, orange and blue. Then bring red back to the front and tip the yellow top towards the camera. Last, flip it over to show white.",
+  "tut_names": "Every side has a name. Up is the top, and Down is the bottom. Front faces you, Back faces away, and Right and Left are your right and left. The names follow the position, not the colour. Whatever side faces you is always the front.",
+  "pattern_choose": "Is your cube solved? Start from a solved cube, or scan it as it is, and I'll find a route to the pattern.",
+  "pattern_scanned": "Got your cube! Follow the moves one at a time, and the pattern will appear."
 }

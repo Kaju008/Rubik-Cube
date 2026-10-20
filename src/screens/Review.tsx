@@ -12,7 +12,7 @@ import { warmUpSolver } from '../cube/solverClient';
 
 interface Props { cube: CubeData; onChange: (c: CubeData) => void; onSolve: () => void; onRescan: () => void }
 
-export function Review({ cube, onChange, onSolve, onRescan }: Props) {
+export function Review({ cube, onChange, onSolve, onRescan, cta = "Solve it" }: Props & { cta?: string }) {
   const colors = useMemo(() => colorsFor(cube.names), [cube.names]);
   const v = useMemo(() => validate(cube.state, cube.names), [cube.state, cube.names]);
 
@@ -70,7 +70,7 @@ export function Review({ cube, onChange, onSolve, onRescan }: Props) {
         {!v.ok && cube.source === 'manual' && <p className="muted small">{v.errors[0]}</p>}
 
         <div className="row">
-          <button className="btn-toy big" disabled={!v.ok} onClick={() => { sfx.start(); onSolve(); }}>Solve it<Icon name="arrow-right" size={20} /></button>
+          <button className="btn-toy big" disabled={!v.ok} onClick={() => { sfx.start(); onSolve(); }}>{cta}<Icon name="arrow-right" size={20} /></button>
           <button className="btn-ghost" onClick={onRescan}><Icon name="scan" size={18} />Rescan</button>
         </div>
       </div>

@@ -80,6 +80,13 @@ src/vendor/    cubejs (MIT) Kociemba solver, wrapped as an ES module
 - **Audio**: richer synthesised sound effects, plus an original lo-fi jazz loop (`scripts/gen_jazz.py`) that ducks under the voice. It has its own toggle.
 - **Professional UI**: a custom line-icon set (`src/ui/Icon.tsx`) replaces emoji, and the design system (Inter, Unbounded and JetBrains Mono) has been rebuilt.
 
+## v5: Guided tricks, real cube detection, scan tutorial
+
+- **Step-by-step players** everywhere (patterns, OLL/PLL, lesson demos): a short intro, then one move at a time with **Done, next**. A *Watch* mode is still there for playing straight through.
+- **Patterns from any cube**: choose *It's solved* or *It's mixed up*. Mixed-up cubes are scanned, and Cubr computes a direct route from that exact position to the pattern (`src/cube/target.ts`).
+- **Cube detection** (`src/scan/detect.ts`): a side is only captured when the box shows real sticker gaps or several clear sticker colours, and the centre matches a side that is still needed. Otherwise the frame turns red with "Cube not detected".
+- **Pre-scan tutorial** (`src/ui/ScanTutorial.tsx`): vector hand-and-cube animations show how to grip the cube (index finger on yellow, thumb under white, red facing the camera), the turning order, and the U/D/F/B/R/L face names. It can be replayed from "How to hold".
+
 ## Roadmap
 Next: automatic move checking through the camera · full OLL (57) · accounts, cloud sync & leaderboards · Hindi voice.
 

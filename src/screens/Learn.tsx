@@ -123,7 +123,7 @@ export function AlgModal({ alg, mode, onClose }: { alg: Alg; mode: 'oll' | 'pll'
         <p className="eyebrow">{mode === 'oll' ? 'OLL' : 'PLL'} · {alg.group ?? (alg.set === 'oll2e' ? 'Yellow cross' : 'Yellow corners')}</p>
         <h2>{alg.name}</h2>
         {alg.tip && <p className="muted">{alg.tip}</p>}
-        <AlgPlayer alg={alg.alg} autoPlay />
+        <AlgPlayer alg={alg.alg} />
       </div>
     </div>
   );

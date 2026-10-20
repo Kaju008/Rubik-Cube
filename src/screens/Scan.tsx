@@ -3,10 +3,12 @@ import { Icon } from '../ui/Icon';
 import { useCamera } from '../hooks/useCamera';
 import type { CubeCanvasHandle } from '../ui/CubeCanvas';
 import { HoldGuide } from '../ui/HoldGuide';
+import { ScanTutorial } from '../ui/ScanTutorial';
 import { Mascot } from '../ui/Mascot';
 import { applyMoves, solvedState, State } from '../cube/model';
 import { CellSample, ColorName, Lab, PALETTE, guessColor, labDist, rgbToLab, sampleGrid } from '../scan/color';
 import { Capture, resolveScan } from '../scan/resolve';
+import { checkFace } from '../scan/detect';
 import { preload, speak } from '../audio/voice';
 import { sfx } from '../audio/sfx';
 
@@ -28,11 +30,14 @@ const ORIENT: State[] = (() => {
 })();
 const SWEEP_MS = 700;
 
-interface Props { onDone: (state: State, names: ColorName[]) => void; onDemo: () => void; onManual: () => void }
-type Phase = 'search' | 'moving' | 'sweep' | 'dupe';
+interface Props { onDone: (state: State, names: ColorName[]) => void; onDemo: () => void; onManual: () => void; tutorial?: boolean }
+type Phase = 'search' | 'absent' | 'wrong' | 'moving' | 'sweep' | 'dupe';
 
-export function Scan({ onDone, onDemo, onManual }: Props) {
+export function Scan({ onDone, onDemo, onManual, tutorial = true }: Props) {
   const cam = useCamera();
+  const [tut, setTut] = useState(tutorial);
+  const tutRef = useRef(tut);
+  tutRef.current = tut;
   const stageRef = useRef<HTMLDivElement>(null);
   const gridRef = useRef<HTMLDivElement>(null);
   const guideRef = useRef<CubeCanvasHandle>(null);
@@ -53,7 +58,7 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
 
   useEffect(() => {
     cam.start('user');
-    preload(['scan_intro', 'scan_red', 'scan_green', 'scan_orange', 'scan_blue', 'scan_yellow', 'scan_white', 'scan_center', 'scan_done']);
+    preload(['tut_hold', 'tut_turn', 'tut_names', 'scan_intro', 'scan_red', 'scan_green', 'scan_orange', 'scan_blue', 'scan_yellow', 'scan_white', 'scan_center', 'scan_done']);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -72,11 +77,11 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
   const spokenIntro = useRef(false);
   const isLive = cam.status === 'live';
   useEffect(() => {
-    if (step < 0 || !isLive) return;
+    if (step < 0 || !isLive || tut) return;
     const lines = spokenIntro.current ? STEPS[step].voice.filter((x) => x !== 'scan_intro') : ['scan_intro', ...STEPS[step].voice.filter((x) => x !== 'scan_intro')];
     spokenIntro.current = true;
     speak(lines);
-  }, [step, isLive]);
+  }, [step, isLive, tut]);
 
   // all six → resolve
   useEffect(() => {
@@ -138,20 +143,24 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
       const gs = gr.width / scale, N = 192;
       canvas.width = N; canvas.height = N;
       ctx.drawImage(v, gx - gs / 2, gy - gs / 2, gs, gs, 0, 0, N, N);
-      const cells = sampleGrid(ctx.getImageData(0, 0, N, N), N);
+      const im = ctx.getImageData(0, 0, N, N);
+      const cells = sampleGrid(im, N);
+      const face = checkFace(im, N, cells);
       lastCells.current = cells;
       const guesses = cells.map((c) => guessColor(c.rgb));
-      setLive(cam.mirrored ? [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => guesses[Math.floor(i / 3) * 3 + 2 - (i % 3)]) : guesses);
+      // only show colours when there really is a cube in the box
+      const shown = face.present ? guesses : Array(9).fill(null);
+      setLive(cam.mirrored ? [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => shown[Math.floor(i / 3) * 3 + 2 - (i % 3)]) : shown);
 
       const S = st.current;
       const i = stepRef.current;
-      if (i < 0) return;
+      if (i < 0 || tutRef.current) return;
       const want = STEPS[i].name;
       const labs = cells.map((c) => c.lab);
       // steadiness = median sticker change between frames (robust to one noisy cell or a passing finger)
       // a cube face = mostly uniform, coloured cells; ignore up to 2 glitchy frames in a row (blur, a finger)
-      const solid = cells.filter((c, q) => c.spread < 36 && guesses[q]).length;
-      const clean = solid >= 7;
+      const solid = face.solid;
+      const clean = face.present;
       S.miss = clean ? 0 : S.miss + 1;
       if (!clean && S.miss < 3 && S.prev) return;
       const present = clean;
@@ -159,7 +168,7 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
       if (present) S.prev = labs;
       const dupe = present && capsRef.current.some((c) => c && labDist(c.cells[4].lab, cells[4].lab) < 8);
 
-      (window as unknown as { __cubrScan: unknown }).__cubrScan = { motion: +motion.toFixed(1), solid, still: S.still, sweep: !!S.sweepStart };
+      (window as unknown as { __cubrScan: unknown }).__cubrScan = { motion: +motion.toFixed(1), solid, gap: +face.gap.toFixed(2), present, still: S.still, sweep: !!S.sweepStart };
       if (S.sweepStart) {
         // keep collecting while the laser sweeps; abort if the cube moves
         if (!present || motion > 16) { S.sweepStart = 0; S.acc = []; S.accRgb = []; setPhase('moving'); return; }
@@ -181,12 +190,24 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
       if (!present) {
         S.still = 0; S.dupeSince = 0;
         if (!S.absentSince) S.absentSince = t;
-        setPhase('search');
-        setHint(t - S.absentSince > 900 ? 'Place the cube in the centre of the box' : '');
+        const away = t - S.absentSince > 900;
+        setPhase(away ? 'absent' : 'search');
+        setHint(away ? 'Cube not detected. Place the cube in the centre of the box' : '');
         if (t - S.absentSince > 3500) sayOnce('scan_center', 10000);
         return;
       }
       S.absentSince = 0;
+      // the centre tells us which side this is: refuse sides we already have (or don't need)
+      const g = guesses[4];
+      const needed = (n: ColorName | null) => !!n && STEPS.some((x, k) => (x.name === n || SIMILAR[x.name] === n) && !capsRef.current[k]);
+      if (g && g !== want && g !== SIMILAR[want] && !needed(g)) {
+        if (!S.dupeSince) S.dupeSince = t;
+        S.still = 0;
+        setPhase('wrong');
+        setHint(`That's the ${g} side. Show the ${want} side`);
+        if (t - S.dupeSince > 1600) sayOnce('already_' + want, 9000);
+        return;
+      }
       if (dupe) {
         if (!S.dupeSince) S.dupeSince = t;
         setPhase('dupe');
@@ -268,12 +289,14 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
           ))}
           <i className="corner tl" /><i className="corner tr" /><i className="corner bl" /><i className="corner br" />
           <i className="laser" />
-          {hint && <div className={`scan-hint ${phase}`} aria-live="polite">{hint}</div>}
+          {hint && <div className={`scan-hint ${phase}`} aria-live="polite">{(phase === 'absent' || phase === 'wrong') && <Icon name="info" size={16} />}{hint}</div>}
         </div>
       </div>
       {snap && <div className="flash" />}
 
       <HoldGuide ref={guideRef} state={ORIENT[0]} facing={cur.name} top={cur.top} topLabel={cur.topLabel} bottom={cur.bottom} mirrored={cam.mirrored} className="float-right" defaultOpen={typeof window === 'undefined' || innerWidth > 900 || innerHeight > 760} />
+
+      {tut && <ScanTutorial onDone={() => setTut(false)} />}
 
       <div className="scan-card card">
         <div className="rule-row">
@@ -286,6 +309,7 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
         <p className="step-detail">{step < 0 ? 'Checking the colours…' : cur.detail}</p>
         <div className="scan-actions">
           <button className="btn-toy" disabled={!lastCells.current || step < 0} onClick={() => lastCells.current && capture(lastCells.current)}><Icon name="camera" size={18} />Capture now</button>
+          <button className="btn-ghost" onClick={() => { sfx.tap(); setTut(true); }}><Icon name="hand" size={17} />How to hold</button>
           <button className="btn-ghost" onClick={onManual}>Enter by hand</button>
           {cam.canSwitch && <button className="btn-ghost" onClick={() => cam.flip()}><Icon name="refresh" size={17} />Flip camera</button>}
         </div>

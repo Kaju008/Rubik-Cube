@@ -5,7 +5,7 @@ import { Review } from './screens/Review';
 import { Solve } from './screens/Solve';
 import { Done } from './screens/Done';
 import { LearnHub, LessonPage } from './screens/Learn';
-import { Tricks } from './screens/Tricks';
+import { Tricks, ScannedForPattern } from './screens/Tricks';
 import { Speed } from './screens/Speed';
 import { setSfxEnabled, sfx, unlockAudio } from './audio/sfx';
 import { setVoiceEnabled, stopVoice } from './audio/voice';
@@ -41,6 +41,8 @@ export default function App() {
   const [voice, setVoice] = useState(() => load('cubr.voice', true));
   const [music, setMusic] = useState(() => load('cubr.music', true));
   const [resume, setResume] = useState<Solution['method'] | undefined>(undefined);
+  const [patternFor, setPatternFor] = useState<string | null>(null);           // scanning so we can build this pattern
+  const [patternCube, setPatternCube] = useState<ScannedForPattern | null>(null);
 
   useEffect(() => { setSfxEnabled(sound); save('cubr.sound', sound); }, [sound]);
   useEffect(() => { setVoiceEnabled(voice); save('cubr.voice', voice); }, [voice]);
@@ -54,7 +56,15 @@ export default function App() {
 
   const go = useCallback((s: Screen) => { stopVoice(); setScreen(s); window.scrollTo(0, 0); }, []);
 
-  const startScan = () => { unlockAudio(); sfx.start(); setResume(undefined); setScreen('scan'); nav('/solve'); };
+  const startScan = () => { unlockAudio(); sfx.start(); setResume(undefined); setPatternFor(null); setScreen('scan'); nav('/solve'); };
+  const scanForPattern = (id: string) => { unlockAudio(); stopVoice(); setResume(undefined); setPatternFor(id); setPatternCube(null); setScreen('scan'); nav('/solve'); };
+  const toPattern = (c: { state: State; names: ColorName[] }) => {
+    if (!patternFor) return false;
+    setPatternCube({ state: c.state, names: c.names, patternId: patternFor });
+    setPatternFor(null);
+    nav('/tricks/patterns');
+    return true;
+  };
   const startDemo = () => {
     unlockAudio(); sfx.start();
     const scramble = randomScramble(20);
@@ -94,20 +104,22 @@ export default function App() {
       <main>
         {section === 'home' && <Home onStart={startScan} onDemo={startDemo} />}
         {section === 'learn' && (route.sub ? <LessonPage id={route.sub} /> : <LearnHub />)}
-        {section === 'tricks' && <Tricks tab={route.sub} />}
+        {section === 'tricks' && <Tricks key={patternCube ? patternCube.state.join('') : 'tricks'} tab={route.sub} scanned={patternCube} onScanFor={scanForPattern} onClearScan={() => setPatternCube(null)} />}
         {section === 'speed' && <Speed tab={route.sub} />}
         {section === 'solve' && screen === 'scan' && (
           <Scan
             onDone={(state, names) => {
               setCube({ state, names, source: 'scan' });
+              if (validate(state, names).ok && toPattern({ state, names })) return;
               // "rescan & continue": straight back to the guide with the same route if the scan is clean
               go(resume && validate(state, names).ok ? 'solve' : 'review');
             }}
             onDemo={startDemo}
             onManual={startManual}
+            tutorial={!resume}
           />
         )}
-        {section === 'solve' && screen === 'review' && cube && <Review cube={cube} onChange={setCube} onSolve={() => go('solve')} onRescan={() => go('scan')} />}
+        {section === 'solve' && screen === 'review' && cube && <Review cube={cube} cta={patternFor ? 'Make the pattern' : undefined} onChange={setCube} onSolve={() => { if (!toPattern(cube)) go('solve'); }} onRescan={() => go('scan')} />}
         {section === 'solve' && screen === 'solve' && cube && (
           <Solve
             key={cube.state.join('')}
