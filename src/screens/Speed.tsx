@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Icon } from '../ui/Icon';
 import { Solve, Penalty, avgOf, bestAvg, bestSingle, mean, fmt, levelFor, LEVELS, streakDays, loadSolves, saveSolves, eff } from '../speed/stats';
 import { getScramble } from '../cube/solverClient';
 import { applyMoves, invertAlg, parseAlg, solvedState } from '../cube/model';
@@ -152,13 +153,13 @@ function Timer() {
 
   return (
     <div className={`timer-wrap ph-${phase} ${busy ? 'busy' : ''}`}>
-      {party && <><Confetti /><div className="pb-toast">🏆 {party}</div></>}
+      {party && <><Confetti /><div className="pb-toast"><Icon name="trophy" size={20} />{party}</div></>}
       <div className="scramble-card card">
         <div className="sc-head">
           <p className="eyebrow">Scramble · yellow top, red front</p>
           <div className="row">
-            <button className="btn-ghost sm" onClick={() => setShowNet(!showNet)}>{showNet ? 'Hide' : 'Show'} cube</button>
-            <button className="btn-ghost sm" onClick={() => { sfx.tap(); newScramble(); }}>↻ New</button>
+            <button className="btn-ghost sm" onClick={() => setShowNet(!showNet)}><Icon name="eye" size={15} />{showNet ? 'Hide' : 'Show'} cube</button>
+            <button className="btn-ghost sm" onClick={() => { sfx.tap(); newScramble(); }}><Icon name="refresh" size={15} />New</button>
           </div>
         </div>
         <p className="scramble-text mono">{scramble || 'Generating…'}</p>
@@ -215,7 +216,7 @@ function Timer() {
             <div>
               <p className="eyebrow">Your level</p>
               <h3>{lvl.cur ? lvl.cur.name : 'Not ranked yet'}</h3>
-              <p className="muted small">{streak ? `🔥 ${streak}-day streak` : 'Solve today to start a streak'}</p>
+              <p className="muted small">{streak ? <><Icon name="flame" size={15} className="flame" /> {streak}-day streak</> : 'Solve today to start a streak'}</p>
             </div>
           </div>
           <ol className="ladder">
@@ -227,7 +228,7 @@ function Timer() {
             <div className="lv-next">
               <p><b>Next: {lvl.next.name}</b>{lvl.record !== null && isFinite(lvl.record) ? ` · you're at ${fmt(lvl.record)}` : ''}</p>
               <p className="muted small">{lvl.next.tip}</p>
-              {lvl.next.learn && <button className="btn-ghost sm" onClick={() => nav(`/learn/${lvl.next!.learn}`)}>Open the lesson →</button>}
+              {lvl.next.learn && <button className="btn-ghost sm" onClick={() => nav(`/learn/${lvl.next!.learn}`)}>Open the lesson<Icon name="arrow-right" size={15} /></button>}
             </div>
           )}
         </section>
@@ -239,7 +240,7 @@ function Timer() {
               <li key={s.id} title={s.scramble}>
                 <span className="muted">#{solves.length - k}</span>
                 <b className="mono">{fmt(eff(s))}{s.penalty === 2 ? '+' : ''}</b>
-                <button className="x" onClick={() => remove(s.id)} aria-label="Delete solve">✕</button>
+                <button className="x" onClick={() => remove(s.id)} aria-label="Delete solve"><Icon name="close" size={13} /></button>
               </li>
             ))}
           </ol>
@@ -307,9 +308,9 @@ function Drills() {
               <h3>{cur.alg.name}</h3>
               <p className="mono">{cur.auf ? `(${cur.auf}) ` : ''}{cur.alg.alg}</p>
               <div className="row center-row">
-                <button className="btn-ghost" onClick={() => setWatch(cur.alg)}>▶ Watch in 3D</button>
-                <button className="btn-toy" onClick={() => grade(true)}>✓ Knew it</button>
-                <button className="btn-ghost danger" onClick={() => grade(false)}>✗ Practise more</button>
+                <button className="btn-ghost" onClick={() => setWatch(cur.alg)}><Icon name="cube" size={17} />Watch in 3D</button>
+                <button className="btn-toy" onClick={() => grade(true)}><Icon name="check" size={18} />Knew it</button>
+                <button className="btn-ghost danger" onClick={() => grade(false)}><Icon name="refresh" size={17} />Practise more</button>
               </div>
             </div>
           ) : (
@@ -334,9 +335,9 @@ export function Speed({ tab }: { tab?: string }) {
           <h1>Get faster, <span className="grad">every week</span></h1>
         </div>
         <div className="tabs" role="tablist">
-          <button role="tab" aria-selected={t === 'timer'} className={t === 'timer' ? 'on' : ''} onClick={() => nav('/speed')}>⏱ Timer</button>
-          <button role="tab" aria-selected={t === 'drills'} className={t === 'drills' ? 'on' : ''} onClick={() => nav('/speed/drills')}>🧠 Alg drills</button>
-          <button className="btn-ghost sm" onClick={() => speak('speed_intro')}>▶ How it works</button>
+          <button role="tab" aria-selected={t === 'timer'} className={t === 'timer' ? 'on' : ''} onClick={() => nav('/speed')}><Icon name="timer" size={17} />Timer</button>
+          <button role="tab" aria-selected={t === 'drills'} className={t === 'drills' ? 'on' : ''} onClick={() => nav('/speed/drills')}><Icon name="cards" size={17} />Alg drills</button>
+          <button className="btn-ghost sm" onClick={() => speak('speed_intro')}><Icon name="info" size={15} />How it works</button>
         </div>
       </header>
       {t === 'timer' ? <Timer /> : <Drills />}

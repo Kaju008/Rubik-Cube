@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../ui/Icon';
 import { useCamera } from '../hooks/useCamera';
 import type { CubeCanvasHandle } from '../ui/CubeCanvas';
 import { HoldGuide } from '../ui/HoldGuide';
@@ -284,9 +285,9 @@ export function Scan({ onDone, onDemo, onManual }: Props) {
         <h2 className="step-title" style={{ ['--c' as string]: PALETTE[cur.name] }}>{step < 0 ? 'All six sides scanned!' : cur.title}</h2>
         <p className="step-detail">{step < 0 ? 'Checking the colours…' : cur.detail}</p>
         <div className="scan-actions">
-          <button className="btn-toy" disabled={!lastCells.current || step < 0} onClick={() => lastCells.current && capture(lastCells.current)}>📸 Capture now</button>
+          <button className="btn-toy" disabled={!lastCells.current || step < 0} onClick={() => lastCells.current && capture(lastCells.current)}><Icon name="camera" size={18} />Capture now</button>
           <button className="btn-ghost" onClick={onManual}>Enter by hand</button>
-          {cam.canSwitch && <button className="btn-ghost" onClick={() => cam.flip()}>🔄 Flip camera</button>}
+          {cam.canSwitch && <button className="btn-ghost" onClick={() => cam.flip()}><Icon name="refresh" size={17} />Flip camera</button>}
         </div>
       </div>
     </div>

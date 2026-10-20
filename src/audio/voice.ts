@@ -1,7 +1,8 @@
 // Cubr's voice: natural recorded female voice clips (Kokoro neural TTS, "Heart"), played through Web Audio
 // so lines can be queued, interrupted and chained smoothly. Falls back to the browser's speech engine.
 import LINES from './lines.json';
-import { audioCtx, unlockAudio } from './sfx';
+import { audioCtx, masterBus, unlockAudio } from './sfx';
+import { duck } from './music';
 
 const TEXT = LINES as Record<string, string>;
 let enabled = true;
@@ -35,9 +36,10 @@ function play(buf: AudioBuffer, my: number): Promise<void> {
     const src = ctx.createBufferSource();
     src.buffer = buf;
     const g = ctx.createGain();
-    g.gain.value = 1.0;
-    src.connect(g).connect(ctx.destination);
-    src.onended = () => { if (current === src) current = null; resolve(); };
+    g.gain.value = 1.1;
+    src.connect(g).connect(masterBus() ?? ctx.destination);
+    duck(true);
+    src.onended = () => { duck(false); if (current === src) current = null; resolve(); };
     current = src;
     src.start();
   });
@@ -60,7 +62,8 @@ function ttsSay(text: string): Promise<void> {
     const u = new SpeechSynthesisUtterance(text);
     if (fallbackVoice) u.voice = fallbackVoice;
     u.rate = 0.98; u.pitch = 1.04;
-    u.onend = () => resolve(); u.onerror = () => resolve();
+    duck(true);
+    u.onend = () => { duck(false); resolve(); }; u.onerror = () => { duck(false); resolve(); };
     s.speak(u);
   });
 }

@@ -68,6 +68,18 @@ src/vendor/    cubejs (MIT) Kociemba solver, wrapped as an ES module
 - Every algorithm and lesson demo is checked by simulation (`npm test`, 76 tests).
 - Navigation: a top bar on desktop and a bottom tab bar on phones, with hash routes (`#/learn/cross`, `#/tricks/algs`, `#/speed/drills`).
 
+## v4: Recovery, 3D-first guide, pro UI
+
+- **Stuck? button** while solving, with four ways back on track:
+  - *Check where I am*: show any one side to the camera and Cubr finds your place in the guide.
+  - *Undo my last moves*: rewind a few steps with reverse moves.
+  - *I turned something wrong*: tap the moves you actually did and Cubr re-plans from there.
+  - *Rescan & continue*: scan the whole cube again and get a fresh route from where it is.
+- **3D cube is the hero** of the solve screen. The camera floats in a small draggable window that can be minimised to a pill.
+- **Step goals**: every step says what it is doing ("bringing the white-green-red corner home"), and the target piece glows on the 3D cube.
+- **Audio**: richer synthesised sound effects, plus an original lo-fi jazz loop (`scripts/gen_jazz.py`) that ducks under the voice. It has its own toggle.
+- **Professional UI**: a custom line-icon set (`src/ui/Icon.tsx`) replaces emoji, and the design system (Inter, Unbounded and JetBrains Mono) has been rebuilt.
+
 ## Roadmap
 Next: automatic move checking through the camera · full OLL (57) · accounts, cloud sync & leaderboards · Hindi voice.
 

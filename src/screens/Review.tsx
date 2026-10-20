@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from 'react';
+import { Icon } from '../ui/Icon';
 import type { CubeData } from '../App';
 import { CubeCanvas } from '../ui/CubeCanvas';
 import { Net } from '../ui/Net';
@@ -69,8 +70,8 @@ export function Review({ cube, onChange, onSolve, onRescan }: Props) {
         {!v.ok && cube.source === 'manual' && <p className="muted small">{v.errors[0]}</p>}
 
         <div className="row">
-          <button className="btn-toy big" disabled={!v.ok} onClick={() => { sfx.start(); onSolve(); }}>Solve it →</button>
-          <button className="btn-ghost" onClick={onRescan}>📷 Rescan</button>
+          <button className="btn-toy big" disabled={!v.ok} onClick={() => { sfx.start(); onSolve(); }}>Solve it<Icon name="arrow-right" size={20} /></button>
+          <button className="btn-ghost" onClick={onRescan}><Icon name="scan" size={18} />Rescan</button>
         </div>
       </div>
     </div>

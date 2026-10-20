@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Icon } from '../ui/Icon';
 import { PATTERNS, OLL_EDGES, OLL_CORNERS, PLL, Alg, Pattern } from '../learn/algs';
 import { AlgGrid } from '../ui/AlgGrid';
 import { AlgPlayer } from '../ui/AlgPlayer';
@@ -13,9 +14,9 @@ import { sfx } from '../audio/sfx';
 import { nav } from '../router';
 
 const TABS = [
-  { id: 'patterns', label: '✨ Patterns' },
-  { id: 'fingers', label: '🖐 Finger tricks' },
-  { id: 'algs', label: '📚 Algorithms' },
+  { id: 'patterns', label: 'Patterns', icon: 'wand' },
+  { id: 'fingers', label: 'Finger tricks', icon: 'hand' },
+  { id: 'algs', label: 'Algorithms', icon: 'book' },
 ];
 
 const FINGER: { move: string; title: string; how: string }[] = [
@@ -36,7 +37,7 @@ function PatternModal({ p, onClose }: { p: Pattern; onClose: () => void }) {
   return (
     <div className="modal" role="dialog" aria-label={p.name} onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-card card">
-        <button className="modal-x" onClick={onClose} aria-label="Close">✕</button>
+        <button className="modal-x" onClick={onClose} aria-label="Close"><Icon name="close" size={18} /></button>
         <p className="eyebrow">Pattern · {p.level}</p>
         <h2>{p.name}</h2>
         <p className="muted">{p.vibe} Start from a solved cube, with yellow on top and red in front.</p>
@@ -61,13 +62,13 @@ export function Tricks({ tab }: { tab?: string }) {
           <p className="eyebrow">Tricks</p>
           <h1>Patterns, finger tricks and <span className="grad">pro algorithms</span></h1>
           <p className="muted">For cubers who know the basics. Impress your friends, then shave seconds off your solves.</p>
-          <div className="row"><button className="btn-ghost" onClick={() => speak('tricks_intro')}>▶ Hear intro</button></div>
+          <div className="row"><button className="btn-ghost" onClick={() => speak('tricks_intro')}><Icon name="play" size={14} />Hear intro</button></div>
         </div>
       </header>
 
       <div className="tabs" role="tablist">
         {TABS.map((x) => (
-          <button key={x.id} role="tab" aria-selected={t === x.id} className={t === x.id ? 'on' : ''} onClick={() => { sfx.tap(); nav(`/tricks/${x.id}`); }}>{x.label}</button>
+          <button key={x.id} role="tab" aria-selected={t === x.id} className={t === x.id ? 'on' : ''} onClick={() => { sfx.tap(); nav(`/tricks/${x.id}`); }}><Icon name={x.icon} size={17} />{x.label}</button>
         ))}
       </div>
 
@@ -97,8 +98,8 @@ export function Tricks({ tab }: { tab?: string }) {
             ))}
           </div>
           <div className="lesson-practice card">
-            <span>🎯 Drill: do R U R′ U′ six times using only finger tricks, as smoothly as you can.</span>
-            <button className="btn-toy" onClick={() => nav('/speed')}>Time yourself →</button>
+            <span className="lp-text"><Icon name="target" size={20} />Drill: do R U R′ U′ six times using only finger tricks, as smoothly as you can.</span>
+            <button className="btn-toy" onClick={() => nav('/speed')}>Time yourself<Icon name="arrow-right" size={18} /></button>
           </div>
         </>
       )}
@@ -109,8 +110,8 @@ export function Tricks({ tab }: { tab?: string }) {
           <div className="algset"><h3>2-look OLL · Yellow corners</h3><AlgGrid algs={OLL_CORNERS} mode="oll" onWatch={setWatch} /></div>
           <div className="algset"><h3>PLL · all 21</h3><AlgGrid algs={PLL} mode="pll" onWatch={setWatch} /></div>
           <div className="lesson-practice card">
-            <span>🧠 Drill these with flash-card style practice.</span>
-            <button className="btn-toy" onClick={() => nav('/speed/drills')}>Algorithm drills →</button>
+            <span className="lp-text"><Icon name="cards" size={20} />Drill these with flash-card style practice.</span>
+            <button className="btn-toy" onClick={() => nav('/speed/drills')}>Algorithm drills<Icon name="arrow-right" size={18} /></button>
           </div>
         </>
       )}

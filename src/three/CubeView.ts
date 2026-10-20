@@ -29,6 +29,8 @@ export class CubeView {
   private cubies: THREE.Group[] = [];
   private stickers: THREE.Mesh[] = [];
   private mats = new Map<string, THREE.MeshStandardMaterial>();
+  private hlMats = new Map<string, THREE.MeshStandardMaterial>();
+  private hl = new Set<number>();
   private state: State;
   private colors: string[];
   private anim: Anim | null = null;
@@ -99,8 +101,23 @@ export class CubeView {
     }
   }
 
+  private hlMat(hex: string) {
+    let m = this.hlMats.get(hex);
+    if (!m) { m = new THREE.MeshStandardMaterial({ color: hex, emissive: hex, emissiveIntensity: 0.4, roughness: 0.3 }); this.hlMats.set(hex, m); }
+    return m;
+  }
+
   private paint() {
-    for (let i = 0; i < 54; i++) this.stickers[i].material = this.mat(this.colors[this.state[i]] ?? '#333');
+    for (let i = 0; i < 54; i++) {
+      const hex = this.colors[this.state[i]] ?? '#333';
+      this.stickers[i].material = this.hl.has(i) ? this.hlMat(hex) : this.mat(hex);
+    }
+  }
+
+  /** Make these stickers glow softly (the piece the solver is working on). */
+  setHighlight(facelets: number[]) {
+    this.hl = new Set(facelets);
+    if (!this.anim) this.paint();
   }
 
   setState(state: State, colors?: string[]) {
@@ -258,6 +275,7 @@ export class CubeView {
     this.yaw += (this.targetYaw - this.yaw) * 0.08;
     this.pitch += (this.targetPitch - this.pitch) * 0.08;
     if (this.opts.autoSpin && !this.dragging) this.spin += 0.004;
+    if (this.hl.size) { const k = 0.18 + 0.42 * (0.5 + 0.5 * Math.sin(now / 260)); this.hlMats.forEach((m) => (m.emissiveIntensity = k)); }
     const yaw = this.yaw + this.dragYaw + this.spin, pitch = Math.max(-1.3, Math.min(1.3, this.pitch + this.dragPitch));
     this.camera.position.set(Math.sin(yaw) * Math.cos(pitch) * this.dist, Math.sin(pitch) * this.dist, Math.cos(yaw) * Math.cos(pitch) * this.dist);
     this.camera.lookAt(0, 0, 0);

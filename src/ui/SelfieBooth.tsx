@@ -1,5 +1,6 @@
 // Victory selfie: 3-2-1 countdown, snap, then a shareable card with the solve time + Cubr logo.
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from './Icon';
 import { useCamera } from '../hooks/useCamera';
 import { sfx } from '../audio/sfx';
 import { speak } from '../audio/voice';
@@ -107,12 +108,12 @@ export function SelfieBooth({ time, moves, route, onClose }: Props) {
       <div className="booth-actions">
         {photo ? (
           <>
-            <a className="btn-toy" href={photo} download={`cubr-solve-${time.replace(':', 'm')}s.png`}>⬇ Download</a>
-            {'share' in navigator && <button className="btn-ghost solid" onClick={share}>Share</button>}
+            <a className="btn-toy" href={photo} download={`cubr-solve-${time.replace(':', 'm')}s.png`}><Icon name="download" size={18} />Download</a>
+            {'share' in navigator && <button className="btn-ghost solid" onClick={share}><Icon name="share" size={17} />Share</button>}
             <button className="btn-ghost solid" onClick={shoot}>Retake</button>
           </>
         ) : (
-          <button className="btn-ghost solid" onClick={shoot} disabled={count !== null || cam.status !== 'live'}>📸 Snap again</button>
+          <button className="btn-ghost solid" onClick={shoot} disabled={count !== null || cam.status !== 'live'}><Icon name="camera" size={18} />Snap again</button>
         )}
         <button className="btn-ghost solid" onClick={() => { cam.stop(); onClose(); }}>Close</button>
       </div>

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Icon } from '../ui/Icon';
 import type { DoneStats } from '../App';
 import { Confetti } from '../ui/Confetti';
 import { Mascot } from '../ui/Mascot';
@@ -53,7 +54,7 @@ export function Done({ stats, onAgain, onHome, onDemo }: { stats: DoneStats | nu
         <Mascot size={140} mood="wow" className="bob" id="done" />
         {!already && <Popper />}
       </div>
-      <h1>{already ? 'Already solved!' : <>You solved it! <span className="grad">🎉</span></>}</h1>
+      <h1>{already ? 'Already solved!' : <>You solved it!</>}</h1>
       {!already && (
         <p className="done-line">
           in <b className="grad">{stats!.moves} moves</b> and <b className="grad">{time}</b>
@@ -67,12 +68,12 @@ export function Done({ stats, onAgain, onHome, onDemo }: { stats: DoneStats | nu
         </div>
       )}
       {!already && (
-        <button className="btn-toy big selfie-btn" onClick={() => setBooth(true)}>📸 Victory selfie</button>
+        <button className="btn-toy big selfie-btn" onClick={() => setBooth(true)}><Icon name="camera" size={20} />Victory selfie</button>
       )}
       <p className="muted">{already ? 'Scramble it up and scan again.' : 'Pose with your cube. We add your time and the Cubr logo, ready to download.'}</p>
       <div className="row center-row">
-        <button className={already ? 'btn-toy big' : 'btn-ghost'} onClick={onAgain}>Solve another →</button>
-        <button className="btn-ghost" onClick={share}>Share</button>
+        <button className={already ? 'btn-toy big' : 'btn-ghost'} onClick={onAgain}>Solve another<Icon name="arrow-right" size={18} /></button>
+        <button className="btn-ghost" onClick={share}><Icon name="share" size={17} />Share</button>
         <button className="btn-ghost" onClick={onDemo}>Demo</button>
         <button className="btn-ghost" onClick={onHome}>Home</button>
       </div>

@@ -24,3 +24,16 @@ describe('beginner solver', () => {
     for (const st of sol.stages) console.log(st.title, '|', st.chunks.map(c => `[${c.label}] ${c.moves.join(' ')}`).join('  ·  '));
   });
 });
+
+describe('chunk goals', () => {
+  it('every beginner chunk has a goal, corner/edge chunks name their piece', () => {
+    for (let k = 0; k < 40; k++) {
+      const sol = solveBeginner(applyMoves(solvedState(), randomScramble()));
+      for (const st of sol.stages) for (const c of st.chunks) {
+        expect(c.goal).toBeTruthy();
+        if (c.goal === 'corner') expect(c.target!.length).toBe(3);
+        if (c.goal === 'edge') expect(c.target!.length).toBe(2);
+      }
+    }
+  });
+});

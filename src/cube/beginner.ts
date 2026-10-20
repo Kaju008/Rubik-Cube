@@ -6,7 +6,11 @@ import {
 } from './model';
 import { CORNERS, EDGES, PARTNERS } from './pieces';
 
-export interface Chunk { label: string; moves: string[]; kind?: 'rotate' | 'adjust' | 'alg'; voice?: string }
+export interface Chunk {
+  label: string; moves: string[]; kind?: 'rotate' | 'adjust' | 'alg'; voice?: string;
+  goal?: 'cross' | 'corner' | 'edge' | 'ycross' | 'yedges' | 'ycorners' | 'twist' | 'fast';
+  target?: number[]; // colour ids of the piece being solved (corner / edge stages)
+}
 export interface Stage { id: string; title: string; goal: string; tip: string; chunks: Chunk[] }
 export interface Solution { method: 'beginner' | 'fast'; stages: Stage[]; moveCount: number }
 
@@ -185,7 +189,7 @@ export function solveBeginner(start: State): Solution {
 
   // 1. cross
   const cross = solveCross(s);
-  const crossChunks: Chunk[] = cross.length ? [{ label: 'Build the white cross on the bottom', moves: cross, kind: 'alg', voice: 'alg_cross' }] : [];
+  const crossChunks: Chunk[] = cross.length ? [{ label: 'Build the white cross on the bottom', moves: cross, kind: 'alg', voice: 'alg_cross', goal: 'cross' }] : [];
   run(crossChunks);
   stages.push(stage('cross', crossChunks));
   if (!crossOK(s)) throw new Error('cross failed');
@@ -200,14 +204,15 @@ export function solveBeginner(start: State): Solution {
     for (let guard = 0; guard < 4 && !firstLayerOK(s); guard++) {
       const done = D_CORNERS.filter((c) => slotOK(s, c.facelets));
       let best: Chunk[] | null = null;
+      let bestTarget: number[] = [];
       for (const target of D_CORNERS) {
         if (slotOK(s, target.facelets)) continue;
         const res = macroSearch(s, macros, (st) => crossOK(st) && slotOK(st, target.facelets) && done.every((c) => slotOK(st, c.facelets)), 3);
-        if (res) { const e = emit(res); if (!best || countMoves(e) < countMoves(best)) best = e; }
+        if (res) { const e = emit(res); if (!best || countMoves(e) < countMoves(best)) { best = e; bestTarget = target.facelets.map((i) => s[centreOf(i)]); } }
       }
       if (!best) break;
       run(best);
-      best.forEach((c) => pushChunk(chunks, c));
+      best.forEach((c) => pushChunk(chunks, { ...c, goal: 'corner', target: bestTarget }));
     }
     stages.push(stage('corners', chunks));
   }
@@ -223,14 +228,15 @@ export function solveBeginner(start: State): Solution {
     for (let guard = 0; guard < 4 && !f2lOK(s); guard++) {
       const done = MID_EDGES.filter((e) => slotOK(s, e.facelets));
       let best: Chunk[] | null = null;
+      let bestTarget: number[] = [];
       for (const target of MID_EDGES) {
         if (slotOK(s, target.facelets)) continue;
         const res = macroSearch(s, macros, (st) => firstLayerOK(st) && slotOK(st, target.facelets) && done.every((e) => slotOK(st, e.facelets)), 3);
-        if (res) { const e = emit(res); if (!best || countMoves(e) < countMoves(best)) best = e; }
+        if (res) { const e = emit(res); if (!best || countMoves(e) < countMoves(best)) { best = e; bestTarget = target.facelets.map((i) => s[centreOf(i)]); } }
       }
       if (!best) break;
       run(best);
-      best.forEach((c) => pushChunk(chunks, c));
+      best.forEach((c) => pushChunk(chunks, { ...c, goal: 'edge', target: bestTarget }));
     }
     stages.push(stage('middle', chunks));
   }
@@ -240,7 +246,7 @@ export function solveBeginner(start: State): Solution {
     if (!f2lOK(s)) return;
     const res = macroSearch(s, macros, goal, depth);
     if (!res) return;
-    const chunks = emit(res);
+    const chunks = emit(res).map((c) => ({ ...c, goal: id as Chunk['goal'] }));
     run(chunks);
     stages.push(stage(id, chunks));
   };
@@ -270,6 +276,7 @@ export function solveBeginner(start: State): Solution {
       const t = m ? applyMoves(s, [m]) : s;
       if (isSolved(t)) { if (m) pushChunk(chunks, { label: 'Final turn of the top — solved!', moves: [m], kind: 'adjust' }); s = t; break; }
     }
+    chunks.forEach((c) => (c.goal = 'twist'));
     stages.push(stage('twist', chunks));
   } else if (f2lOK(s) && uEdgesOK(s) && uCornersPlaced(s)) {
     stages.push(stage('twist', []));
@@ -282,7 +289,7 @@ export function solveBeginner(start: State): Solution {
 
 export function fastSolution(moves: string[]): Solution {
   const chunks: Chunk[] = [];
-  for (let i = 0; i < moves.length; i += 4) chunks.push({ label: `Moves ${i + 1}–${Math.min(i + 4, moves.length)}`, moves: moves.slice(i, i + 4), kind: 'alg' });
+  for (let i = 0; i < moves.length; i += 4) chunks.push({ label: `Moves ${i + 1}–${Math.min(i + 4, moves.length)}`, moves: moves.slice(i, i + 4), kind: 'alg', goal: 'fast' });
   return {
     method: 'fast',
     stages: [{ id: 'fast', title: 'Fast solve', goal: `Solve it in ${moves.length} moves.`, tip: 'Computer-optimal route — near the fewest moves possible.', chunks }],

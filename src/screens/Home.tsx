@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Icon } from '../ui/Icon';
 import { Mascot } from '../ui/Mascot';
 import { CubeCanvas } from '../ui/CubeCanvas';
 import { HowToCards } from '../ui/HowToCards';
@@ -11,7 +12,7 @@ import { LESSONS, loadDone } from '../learn/lessons';
 import { bestSingle, fmt, loadSolves } from '../speed/stats';
 
 const LINES = [
-  "Hey, I'm Cubr! 👋",
+  "Hey, I'm Cubr!",
   "Got a scrambled cube? I'll solve it with you, one turn at a time.",
   'Place your phone or laptop on a table, show your cube to the camera, and tap Start.',
 ];
@@ -46,7 +47,7 @@ export function Home({ onStart, onDemo }: { onStart: () => void; onDemo: () => v
             <Mascot size={96} className="bob" id="hero" />
             <div className="bubble" aria-live="polite">
               {typed.map((t, i) => <p key={i}>{t}</p>)}
-              <button className="hear no-greet" onClick={hear}>▶ Hear Cubr</button>
+              <button className="hear no-greet" onClick={hear}><Icon name="play" size={12} />Hear Cubr</button>
             </div>
           </div>
           <h1>Point. Scan. <span className="grad">Solve.</span></h1>
@@ -55,7 +56,7 @@ export function Home({ onStart, onDemo }: { onStart: () => void; onDemo: () => v
             with a gentle voice guide.
           </p>
           <div className="cta no-greet">
-            <button className="btn-toy big" onClick={onStart}>Start <span aria-hidden="true">→</span></button>
+            <button className="btn-toy big" onClick={onStart}>Start scanning<Icon name="arrow-right" size={20} /></button>
             <button className="btn-ghost" onClick={onDemo}>No cube nearby? Try the demo</button>
           </div>
         </div>
@@ -75,24 +76,24 @@ export function Home({ onStart, onDemo }: { onStart: () => void; onDemo: () => v
         <div className="soon-grid">
           <button className="soon-card c-green no-greet" onClick={() => nav('/learn')}>
             <span className="tag">{done.length ? `${done.length}/${LESSONS.length} lessons` : `${LESSONS.length} lessons`}</span>
-            <h3>🎓 Learn</h3><p>Beginner to advanced, stage by stage, with a 3D cube that plays every move.</p>
-            <span className="go">Start learning →</span>
+            <span className="sc-ico"><Icon name="learn" size={22} /></span><h3>Learn</h3><p>Beginner to advanced, stage by stage, with a 3D cube that plays every move.</p>
+            <span className="go">Start learning<Icon name="arrow-right" size={16} /></span>
           </button>
           <button className="soon-card c-pink no-greet" onClick={() => nav('/tricks')}>
             <span className="tag">8 patterns · 31 algs</span>
-            <h3>✨ Tricks</h3><p>Show-off patterns, finger tricks, and the full OLL and PLL library.</p>
-            <span className="go">Explore tricks →</span>
+            <span className="sc-ico"><Icon name="sparkle" size={22} /></span><h3>Tricks</h3><p>Show-off patterns, finger tricks, and the full OLL and PLL library.</p>
+            <span className="go">Explore tricks<Icon name="arrow-right" size={16} /></span>
           </button>
           <button className="soon-card c-blue no-greet" onClick={() => nav('/speed')}>
             <span className="tag">{pb ? `PB ${fmt(pb)}` : 'Timer + drills'}</span>
-            <h3>⏱ Speed</h3><p>Pro timer, averages, progress levels and algorithm drills.</p>
-            <span className="go">Time a solve →</span>
+            <span className="sc-ico"><Icon name="timer" size={22} /></span><h3>Speed</h3><p>Pro timer, averages, progress levels and algorithm drills.</p>
+            <span className="go">Time a solve<Icon name="arrow-right" size={16} /></span>
           </button>
         </div>
       </section>
 
       <footer className="foot">
-        <p>🔒 Everything runs on your device. Your camera feed never leaves your phone or laptop.</p>
+        <p><Icon name="lock" size={15} /> Everything runs on your device. Your camera feed never leaves your phone or laptop.</p>
         <p className="fine">Rubik's Cube is a trademark of Spin Master Ltd. Cubr is an independent fan project and is not affiliated with it. Voice: Kokoro TTS.</p>
       </footer>
     </div>

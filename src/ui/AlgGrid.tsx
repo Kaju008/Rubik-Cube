@@ -1,5 +1,6 @@
 // Grid of algorithm cards with case diagrams.
 import { useMemo } from 'react';
+import { Icon } from './Icon';
 import type { Alg } from '../learn/algs';
 import { CaseDiagram } from './CaseDiagram';
 import { applyMoves, invertAlg, parseAlg, solvedState } from '../cube/model';
@@ -23,7 +24,7 @@ export function AlgGrid({ algs, mode, onWatch }: { algs: Alg[]; mode: 'oll' | 'p
               <span className="ac-body">
                 <b>{a.name}{a.twoLook && mode === 'pll' ? <small className="tag">2-look</small> : null}</b>
                 <span className="mono">{a.alg}</span>
-                <small className="ac-watch">▶ Watch in 3D</small>
+                <small className="ac-watch"><Icon name="cube" size={13} />Watch in 3D</small>
               </span>
             </button>
           </div>

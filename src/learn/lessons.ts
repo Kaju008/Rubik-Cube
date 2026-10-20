@@ -9,7 +9,7 @@ export type Block =
   | { kind: 'algset'; set: 'oll2e' | 'oll2c' | 'pll2' | 'pll'; title: string }
   | { kind: 'practice'; text: string; to: 'solve' | 'speed' | 'tricks' };
 
-export interface Lesson { id: string; track: string; title: string; emoji: string; minutes: number; summary: string; voice: string; xp: number; blocks: Block[] }
+export interface Lesson { id: string; track: string; title: string; emoji: string /* icon name */; minutes: number; summary: string; voice: string; xp: number; blocks: Block[] }
 export interface Track { id: string; title: string; level: 'Beginner' | 'Intermediate' | 'Advanced'; blurb: string; color: string }
 
 export const TRACKS: Track[] = [
@@ -22,7 +22,7 @@ export const TRACKS: Track[] = [
 export const LESSONS: Lesson[] = [
   // ---------------- basics ----------------
   {
-    id: 'meet', track: 'basics', title: 'Meet the cube', emoji: '🧊', minutes: 2, xp: 10, voice: 'lesson_meet',
+    id: 'meet', track: 'basics', title: 'Meet the cube', emoji: 'cube', minutes: 2, xp: 10, voice: 'lesson_meet',
     summary: 'Centres, edges and corners: the three kinds of pieces.',
     blocks: [
       { kind: 'text', text: 'A cube has 26 visible pieces, and there are only three kinds. Tap each kind below to light it up.' },
@@ -33,7 +33,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'notation', track: 'basics', title: 'Move notation', emoji: '🔤', minutes: 4, xp: 10, voice: 'lesson_notation',
+    id: 'notation', track: 'basics', title: 'Move notation', emoji: 'letters', minutes: 4, xp: 10, voice: 'lesson_notation',
     summary: 'R, U, F, prime and 2: read any algorithm.',
     blocks: [
       { kind: 'text', text: 'Each face has a letter: R (right), L (left), U (up/top), D (down/bottom), F (front), B (back). A plain letter means a clockwise quarter turn, as if you were looking straight at that face.' },
@@ -43,7 +43,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'trigger', track: 'basics', title: 'The trigger move', emoji: '⚡', minutes: 3, xp: 10, voice: 'lesson_trigger',
+    id: 'trigger', track: 'basics', title: 'The trigger move', emoji: 'bolt', minutes: 3, xp: 10, voice: 'lesson_trigger',
     summary: 'R U R′ U′, the most famous four moves in cubing.',
     blocks: [
       { kind: 'text', text: 'R U R′ U′ is called the trigger (or "sexy move"). It shows up everywhere: in the beginner method, in F2L and in OLL. Get it into your fingers.' },
@@ -54,7 +54,7 @@ export const LESSONS: Lesson[] = [
   },
   // ---------------- beginner method ----------------
   {
-    id: 'cross', track: 'beginner', title: 'Stage 1 · White cross', emoji: '➕', minutes: 5, xp: 15, voice: 'lesson_cross',
+    id: 'cross', track: 'beginner', title: 'Stage 1 · White cross', emoji: 'plus', minutes: 5, xp: 15, voice: 'lesson_cross',
     summary: 'Build a white plus on the bottom that matches the side centres.',
     blocks: [
       { kind: 'text', text: 'Goal: the four white edges sit around the white centre on the bottom, and each edge’s other colour matches its side centre.' },
@@ -64,7 +64,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'corners', track: 'beginner', title: 'Stage 2 · White corners', emoji: '🔲', minutes: 5, xp: 15, voice: 'lesson_corners',
+    id: 'corners', track: 'beginner', title: 'Stage 2 · White corners', emoji: 'corner', minutes: 5, xp: 15, voice: 'lesson_corners',
     summary: 'Park the corner, repeat the trigger until it drops in.',
     blocks: [
       { kind: 'text', text: 'Find a corner with white in the top layer. Turn the top until the corner sits right above the spot where it belongs, at the front-right.' },
@@ -73,7 +73,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'middle', track: 'beginner', title: 'Stage 3 · Middle layer', emoji: '🟰', minutes: 6, xp: 15, voice: 'lesson_middle',
+    id: 'middle', track: 'beginner', title: 'Stage 3 · Middle layer', emoji: 'layers', minutes: 6, xp: 15, voice: 'lesson_middle',
     summary: 'Match an edge with its centre, insert it right or left.',
     blocks: [
       { kind: 'text', text: 'Flip the cube so white is on the bottom (the Cubr way). Find a top-layer edge with no yellow. Turn the top so its front colour matches the front centre.' },
@@ -83,7 +83,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'ycross', track: 'beginner', title: 'Stage 4 · Yellow cross', emoji: '✚', minutes: 4, xp: 15, voice: 'lesson_ycross',
+    id: 'ycross', track: 'beginner', title: 'Stage 4 · Yellow cross', emoji: 'plus', minutes: 4, xp: 15, voice: 'lesson_ycross',
     summary: 'F R U R′ U′ F′: dot → L → line → cross.',
     blocks: [
       { kind: 'text', text: 'Look at the yellow top. You’ll see a dot, an L, a line, or already a cross. One algorithm takes you through all of them.' },
@@ -92,7 +92,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'yedges', track: 'beginner', title: 'Stage 5 · Yellow edges', emoji: '🔁', minutes: 4, xp: 15, voice: 'lesson_yedges',
+    id: 'yedges', track: 'beginner', title: 'Stage 5 · Yellow edges', emoji: 'swap', minutes: 4, xp: 15, voice: 'lesson_yedges',
     summary: 'Match the top edges to their sides with R U R′ U R U2 R′.',
     blocks: [
       { kind: 'text', text: 'Turn the top until two edges match their side centres. If they are next to each other, hold them at the back and the right, then do the algorithm.' },
@@ -101,7 +101,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'ycorners', track: 'beginner', title: 'Stage 6 · Corner homes', emoji: '🏠', minutes: 4, xp: 15, voice: 'lesson_ycorners',
+    id: 'ycorners', track: 'beginner', title: 'Stage 6 · Corner homes', emoji: 'home', minutes: 4, xp: 15, voice: 'lesson_ycorners',
     summary: 'U R U′ L′ U R′ U′ L cycles three corners.',
     blocks: [
       { kind: 'text', text: 'A corner is "home" when its three colours match the three centres around it, even if it’s twisted. Find a corner that is home and hold it at the front-right.' },
@@ -110,7 +110,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'twist', track: 'beginner', title: 'Stage 7 · Twist the corners', emoji: '🌀', minutes: 5, xp: 20, voice: 'lesson_twist',
+    id: 'twist', track: 'beginner', title: 'Stage 7 · Twist the corners', emoji: 'twist', minutes: 5, xp: 20, voice: 'lesson_twist',
     summary: 'R′ D′ R D until yellow faces up. Trust the process!',
     blocks: [
       { kind: 'text', text: 'Hold an unsolved corner at the front-right of the top. Repeat R′ D′ R D until its yellow sticker faces up (2 or 4 times). Then turn ONLY the top to bring the next corner there.' },
@@ -121,7 +121,7 @@ export const LESSONS: Lesson[] = [
   },
   // ---------------- intermediate ----------------
   {
-    id: 'oll2', track: 'intermediate', title: '2-look OLL', emoji: '🟨', minutes: 10, xp: 25, voice: 'lesson_oll2',
+    id: 'oll2', track: 'intermediate', title: '2-look OLL', emoji: 'grid', minutes: 10, xp: 25, voice: 'lesson_oll2',
     summary: 'Make the whole top yellow in two steps: 10 algorithms.',
     blocks: [
       { kind: 'text', text: 'OLL means Orient the Last Layer: make the whole top yellow. In 2-look OLL you first make the yellow cross (3 cases), then twist all the corners at once (7 cases).' },
@@ -131,7 +131,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'pll2', track: 'intermediate', title: '2-look PLL', emoji: '🔄', minutes: 10, xp: 25, voice: 'lesson_pll2',
+    id: 'pll2', track: 'intermediate', title: '2-look PLL', emoji: 'cycle', minutes: 10, xp: 25, voice: 'lesson_pll2',
     summary: 'Place the last layer: corners first, then edges.',
     blocks: [
       { kind: 'text', text: 'PLL means Permute the Last Layer: move the yellow pieces to their homes. First fix the corners (T or Y perm), then the edges (U, H or Z perm).' },
@@ -142,7 +142,7 @@ export const LESSONS: Lesson[] = [
   },
   // ---------------- advanced ----------------
   {
-    id: 'f2l', track: 'advanced', title: 'F2L: pairs, not layers', emoji: '🧩', minutes: 12, xp: 30, voice: 'lesson_f2l',
+    id: 'f2l', track: 'advanced', title: 'F2L: pairs, not layers', emoji: 'puzzle', minutes: 12, xp: 30, voice: 'lesson_f2l',
     summary: 'Pair a corner with its edge and insert both at once.',
     blocks: [
       { kind: 'text', text: 'In CFOP you skip stages 2 and 3. Instead you join each white corner with its matching middle edge on top, then insert the pair in one go. That saves about 30 moves.' },
@@ -153,7 +153,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'pllfull', track: 'advanced', title: 'Full PLL: all 21', emoji: '🏁', minutes: 25, xp: 40, voice: 'lesson_pllfull',
+    id: 'pllfull', track: 'advanced', title: 'Full PLL: all 21', emoji: 'flag', minutes: 25, xp: 40, voice: 'lesson_pllfull',
     summary: 'One look, one algorithm, the last layer done.',
     blocks: [
       { kind: 'text', text: 'Full PLL replaces the two PLL steps with one. Learn them in groups: edges only, corners only, adjacent swaps, diagonal swaps and the four G-perms.' },
@@ -161,7 +161,7 @@ export const LESSONS: Lesson[] = [
     ],
   },
   {
-    id: 'faster', track: 'advanced', title: 'Going sub-30', emoji: '🚀', minutes: 5, xp: 30, voice: 'lesson_faster',
+    id: 'faster', track: 'advanced', title: 'Going sub-30', emoji: 'rocket', minutes: 5, xp: 30, voice: 'lesson_faster',
     summary: 'Inspection, cross planning, lookahead and finger tricks.',
     blocks: [
       { kind: 'text', text: 'Plan your whole cross during the 15 seconds of inspection, and aim for 8 moves or fewer.' },

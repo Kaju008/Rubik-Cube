@@ -1,5 +1,6 @@
 // Floating side tab that shows, in 3D, how the cube should be held right now.
 import { forwardRef, useState } from 'react';
+import { Icon } from './Icon';
 import { CubeCanvas, CubeCanvasHandle } from './CubeCanvas';
 import type { State } from '../cube/model';
 import { ColorName, PALETTE, colorsFor, STANDARD_NAMES } from '../scan/color';
@@ -27,7 +28,7 @@ export const HoldGuide = forwardRef<CubeCanvasHandle, Props>(function HoldGuide(
   return (
     <aside className={`hold-guide ${open ? '' : 'closed'} ${className ?? ''}`}>
       <button className="hold-tab" onClick={() => setOpen(!open)} aria-expanded={open}>
-        <span>🧊 {title}</span><span aria-hidden="true">{open ? '–' : '+'}</span>
+        <span className="ht-title"><Icon name="cube" size={15} />{title}</span><Icon name={open ? 'minimize' : 'expand'} size={14} />
       </button>
       <div className="hold-body">
         <CubeCanvas ref={ref} state={state} colors={colorsFor(STANDARD_NAMES)} interactive={false} mirrored={mirrored} className="hold-cube" label={title} />

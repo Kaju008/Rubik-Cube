@@ -1,5 +1,6 @@
 // Interactive 3D algorithm player: play / pause / step / scrub, with spoken moves.
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Icon } from './Icon';
 import { CubeCanvas, CubeCanvasHandle } from './CubeCanvas';
 import { MoveIcon } from './MoveIcon';
 import { applyMoves, invertAlg, parseAlg, solvedState, State } from '../cube/model';
@@ -83,7 +84,7 @@ export function AlgPlayer({ alg, setup, start, title, caption, narrate = true, a
       {title && <h4 className="ap-title">{title}</h4>}
       <div className="ap-stage">
         <CubeCanvas ref={ref} state={startState} colors={colors} peek onTap={toggle} label={title ?? 'Algorithm demo'} />
-        {cur && <div className="ap-move">{!done && <MoveIcon move={moves[i] ?? cur} size={86} />}<span>{done ? '✓ Done' : describeMove(moves[i]).long}</span></div>}
+        {cur && <div className="ap-move">{!done && <MoveIcon move={moves[i] ?? cur} size={86} />}<span>{done ? 'Done' : describeMove(moves[i]).long}</span></div>}
       </div>
       <div className="ap-chips" role="list">
         {moves.map((m, k) => (
@@ -91,10 +92,10 @@ export function AlgPlayer({ alg, setup, start, title, caption, narrate = true, a
         ))}
       </div>
       <div className="ap-controls">
-        <button className="btn-round sm" onClick={() => jump(0)} aria-label="Restart">⟲</button>
-        <button className="btn-round sm" onClick={back} disabled={i === 0} aria-label="Step back">◀</button>
-        <button className="btn-toy" onClick={toggle}>{playing ? '⏸ Pause' : done ? '↻ Again' : i ? '▶ Resume' : '▶ Play'}</button>
-        <button className="btn-round sm" onClick={() => { setPlaying(false); step(); }} disabled={done} aria-label="Step forward">▶</button>
+        <button className="btn-round sm" onClick={() => jump(0)} aria-label="Restart"><Icon name="restart" size={17} /></button>
+        <button className="btn-round sm" onClick={back} disabled={i === 0} aria-label="Step back"><Icon name="prev" size={17} /></button>
+        <button className="btn-toy" onClick={toggle}><Icon name={playing ? 'pause' : done ? 'restart' : 'play'} size={16} />{playing ? 'Pause' : done ? 'Again' : i ? 'Resume' : 'Play'}</button>
+        <button className="btn-round sm" onClick={() => { setPlaying(false); step(); }} disabled={done} aria-label="Step forward"><Icon name="next" size={17} /></button>
         <div className="seg sm" role="group" aria-label="Speed">
           {SPEEDS.map((s, k) => <button key={s.k} className={k === speed ? 'on' : ''} onClick={() => setSpeed(k)}>{s.k}</button>)}
         </div>
